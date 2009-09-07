@@ -349,8 +349,6 @@ void Init_mcrypt()
            mcrypt_enc_set_state
 
        class methods:
-           algorithm_version
-           mode_version
            self_test ?
            ruby:
            Mcrypt.algorithm(a).

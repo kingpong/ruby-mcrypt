@@ -137,4 +137,20 @@ class McryptTest < Test::Unit::TestCase
     assert_kind_of Integer, Mcrypt.mode_version(:cfb)
   end
 
+  def test_class_algorithm_info
+    info = Mcrypt.algorithm_info(:rijndael_256)
+    assert_equal true, info[:block_algorithm]
+    assert_equal 32, info[:block_size]
+    assert_equal 32, info[:key_size]
+    assert_equal [16,24,32], info[:key_sizes]
+    assert_kind_of Integer, info[:algorithm_version]
+  end
+
+  def test_class_mode_info
+    info = Mcrypt.mode_info(:cfb)
+    assert_equal true, info[:block_mode]
+    assert_equal true, info[:block_algorithm_mode]
+    assert_kind_of Integer, info[:mode_version]
+  end
+
 end
