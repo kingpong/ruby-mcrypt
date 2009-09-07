@@ -2,6 +2,9 @@ require 'mcrypt.so'
 
 class Mcrypt
 
+  class InvalidKeyError < ArgumentError; end
+  class InvalidIVError < ArgumentError; end
+
   class << self
 
     # Returns a hash with the following keys:
@@ -52,9 +55,32 @@ class Mcrypt
 
   private
   
-  # if key and iv are passed to new(), they will be passed through
+  # If key and iv are passed to new(), they will be passed through
   # here for processing
   def after_init(key=nil,iv=nil) #:nodoc:
+    if key
+      @key = validate_key(key)
+      @iv = validate_iv(iv) if iv
+    end
+  end
+
+  def validate_key(key)
+    if key.length == key_size || key_sizes.include?(key.length)
+      key
+    else
+      raise(InvalidKeyError, "Key length #{key.length} is not supported by #{algorithm}.")
+    end
+  end
+
+  def validate_iv(iv)
+    unless has_iv?
+      raise(InvalidIVError, "Mode #{mode} does not use an IV.")
+    end
+    if iv.length == iv_size
+      iv
+    else
+      raise(InvalidIVError, "IV length #{iv.length} is not supported by #{mode}.")
+    end
   end
 
 end

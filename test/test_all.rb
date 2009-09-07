@@ -153,4 +153,35 @@ class McryptTest < Test::Unit::TestCase
     assert_kind_of Integer, info[:mode_version]
   end
 
+  def test_bad_key_length_is_rejected
+    assert_raise Mcrypt::InvalidKeyError do
+      Mcrypt.new(:tripledes,:cbc,"0"*64)
+    end
+  end
+
+  def test_good_key_length_is_not_rejected
+    assert_nothing_raised do
+      Mcrypt.new(:tripledes,:cbc,"0"*24)
+    end
+  end
+
+  def test_bad_iv_length_is_rejected
+    assert_raise Mcrypt::InvalidIVError do
+      Mcrypt.new(:tripledes,:cbc,"0"*24,"0"*32)
+    end
+  end
+
+  def test_good_iv_length_is_not_rejected
+    assert_nothing_raised do
+      Mcrypt.new(:tripledes,:cbc,"0"*24,"0"*8)
+    end
+  end
+
+  def test_unused_iv_is_rejected
+    # positive case is tested implicitly in test_good_iv_length_is_not_rejected
+    assert_raise Mcrypt::InvalidIVError do
+      Mcrypt.new(:tripledes,:ecb,"0"*24,"0"*8)
+    end
+  end
+
 end

@@ -337,29 +337,17 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "mode_version", mck_mode_version, 1);
 
     /* TODO:
-
        instance methods:
            init / deinit
            encrypt
            decrypt
-           self_test ?
 
            (for copying)
            mcrypt_enc_get_state
            mcrypt_enc_set_state
 
-       class methods:
-           self_test ?
-           ruby:
-           Mcrypt.algorithm(a).
-                block_algorithm?
-                key_size
-                block_size
-                supported_key_sizes (alias key_sizes)
-
-           Mcrypt.mode(m).
-                block_algorithm_mode?
-                block_mode?
+       Maybe:
+           self-tests
        */
 }
 
