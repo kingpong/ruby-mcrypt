@@ -61,6 +61,7 @@ static VALUE mck_algorithms(VALUE self);
 static VALUE mck_modes(VALUE self);
 static VALUE mck_is_block_algorithm(VALUE self, VALUE algo);
 static VALUE mck_key_size(VALUE self, VALUE algo);
+static VALUE mck_block_size(VALUE self, VALUE algo);
 
 
 /*= IMPLEMENTATION =*/
@@ -272,6 +273,12 @@ static VALUE mck_key_size(VALUE self, VALUE algo)
     return INT2FIX(mcrypt_module_get_algo_key_size(RSTRING(algo)->ptr,NULL));
 }
 
+static VALUE mck_block_size(VALUE self, VALUE algo)
+{
+    algo = canonicalize_algorithm(algo);
+    return INT2FIX(mcrypt_module_get_algo_block_size(RSTRING(algo)->ptr,NULL));
+}
+
 void Init_mcrypt()
 {
     /* look up once, use many */
@@ -302,12 +309,11 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "modes", mck_modes, 0);
     rb_define_singleton_method(cMcrypt, "block_algorithm?", mck_is_block_algorithm, 1);
     rb_define_singleton_method(cMcrypt, "key_size", mck_key_size, 1);
+    rb_define_singleton_method(cMcrypt, "block_size", mck_block_size, 1);
 
     /* TODO:
 
        class methods:
-           mcrypt_module_get_algo_key_size(a) => key_size(a)
-           mcrypt_module_get_algo_block_size(a) => block_size(a)
            mcrypt_mdoule_get_algo_supported_key_sizes(a) => supported_key_sizes(a) / key_sizes(a)
 
            mcrypt_module_is_block_algorithm_mode(m) => block_algorithm_mode?(m)

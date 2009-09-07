@@ -108,4 +108,9 @@ class McryptTest < Test::Unit::TestCase
     assert_equal 24, Mcrypt.key_size(:tripledes)
   end
 
+  def test_class_block_size
+    assert_equal 32, Mcrypt.block_size(:rijndael_256)
+    assert_equal 8, Mcrypt.block_size(:des)
+  end
+
 end
