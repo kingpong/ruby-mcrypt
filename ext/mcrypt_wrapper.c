@@ -30,16 +30,18 @@
 #define RSTR_N(V)       (NIL_P(V) ? NULL : RSTRING(V)->ptr)
 #define TO_RB_BOOL(V)   ((V) ? Qtrue : Qfalse)
 
+/* utilities */
 static ID to_string;
 static VALUE to_s(VALUE o);
 static char *dup_rbstring(VALUE o, int include_null);
 
+/* globals */
 static VALUE cMcrypt;
 static VALUE cInvalidAlgorithmOrModeError;
-
 static VALUE mc_alloc(VALUE klass);
 static void  mc_free(void *p);
 
+/* instance methods */
 static VALUE mc_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE mc_key_size(VALUE self);
 static VALUE mc_block_size(VALUE self);
@@ -49,6 +51,13 @@ static VALUE mc_is_block_mode(VALUE self);
 static VALUE mc_is_block_algorithm_mode(VALUE self);
 static VALUE mc_algorithm_version(VALUE self);
 static VALUE mc_mode_version(VALUE self);
+
+/* class methods */
+static VALUE mc_algorithms(VALUE self);
+static VALUE mc_modes(VALUE self);
+
+
+/*= IMPLEMENTATION =*/
 
 static VALUE mc_alloc(VALUE klass)
 {
@@ -229,6 +238,22 @@ static VALUE mc_algorithms(VALUE self)
     return rv;
 }
 
+static VALUE mc_modes(VALUE self)
+{
+    VALUE rv;
+    int size, i;
+    char **list;
+
+    list = mcrypt_list_modes(NULL, &size);
+    rv = rb_ary_new2(size);
+    for (i = 0; i < size; i++) {
+        rb_ary_push(rv, rb_str_new2(list[i]));
+    }
+    mcrypt_free_p(list, size);
+
+    return rv;
+}
+
 void Init_mcrypt()
 {
     /* look up once, use many */
@@ -255,6 +280,7 @@ void Init_mcrypt()
 
     /*= CLASS METHODS =*/
     rb_define_singleton_method(cMcrypt, "algorithms", mc_algorithms, 0);
+    rb_define_singleton_method(cMcrypt, "modes", mc_modes, 0);
 
     /* TODO:
 

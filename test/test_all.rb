@@ -94,5 +94,8 @@ class McryptTest < Test::Unit::TestCase
   def test_algorithms
     assert_equal ['tripledes','twofish'], Mcrypt.algorithms.grep(/tripledes|twofish/).sort
   end
+  def test_modes
+    assert_equal ['cbc','cfb'], Mcrypt.modes.grep(/\A(cbc|cfb)\Z/).sort
+  end
 
 end
