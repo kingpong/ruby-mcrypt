@@ -124,4 +124,9 @@ class McryptTest < Test::Unit::TestCase
     assert_equal false, Mcrypt.block_algorithm_mode?(:stream)
   end
 
+  def test_class_block_mode_b
+    assert_equal true, Mcrypt.block_mode?(:cbc)
+    assert_equal false, Mcrypt.block_mode?(:stream)
+  end
+
 end

@@ -65,6 +65,7 @@ static VALUE mck_is_block_algorithm(VALUE self, VALUE algo);
 static VALUE mck_key_size(VALUE self, VALUE algo);
 static VALUE mck_block_size(VALUE self, VALUE algo);
 static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode);
+static VALUE mck_is_block_mode(VALUE self, VALUE mode);
 
 
 /*= IMPLEMENTATION =*/
@@ -278,6 +279,12 @@ static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode)
     return TO_RB_BOOL(mcrypt_module_is_block_algorithm_mode(RSTRING(mode)->ptr,NULL));
 }
 
+static VALUE mck_is_block_mode(VALUE self, VALUE mode)
+{
+    mode = to_s(mode);
+    return TO_RB_BOOL(mcrypt_module_is_block_mode(RSTRING(mode)->ptr,NULL));
+}
+
 void Init_mcrypt()
 {
     /* look up once, use many */
@@ -311,11 +318,11 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "block_size", mck_block_size, 1);
     rb_define_singleton_method(cMcrypt, "key_sizes", mck_key_sizes, 1);
     rb_define_singleton_method(cMcrypt, "block_algorithm_mode?", mck_is_block_algorithm_mode, 1);
+    rb_define_singleton_method(cMcrypt, "block_mode?", mck_is_block_mode, 1);
 
     /* TODO:
 
        class methods:
-           mcrypt_module_is_block_algorithm_mode(m) => block_algorithm_mode?(m)
            mcrypt_module_is_block_mode(m) => block_mode?(m)
 
            ruby:
