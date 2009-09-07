@@ -126,6 +126,13 @@ static VALUE mc_key_size(VALUE self)
     return INT2FIX(mcrypt_enc_get_key_size(*box));
 }
 
+static VALUE mc_block_size(VALUE self)
+{
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+    return INT2FIX(mcrypt_enc_get_block_size(*box));
+}
+
 static VALUE to_s(VALUE o)
 {
     return rb_obj_is_kind_of(o,rb_cString)
@@ -155,6 +162,6 @@ void Init_mcrypt()
     rb_define_method(cMcrypt, "initialize", mc_initialize, -1);
     rb_define_method(cMcrypt, "is_block_algorithm", mc_is_block_algorithm, 0);
     rb_define_method(cMcrypt, "key_size", mc_key_size, 0);
-//    rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
+    rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
 //    rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
 }
