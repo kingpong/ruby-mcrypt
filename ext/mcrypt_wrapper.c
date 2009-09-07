@@ -34,18 +34,17 @@ static VALUE to_s(VALUE o);
 static char *dup_rbstring(VALUE o, int include_null);
 
 static VALUE cMcrypt;
-
-typedef MCRYPT mcrypt_box;
+static VALUE cInvalidAlgorithmOrModeError;
 
 static VALUE mc_alloc(VALUE klass);
 static void  mc_free(void *p);
 
 static VALUE mc_alloc(VALUE klass)
 {
-  mcrypt_box *box;
+  MCRYPT *box;
   VALUE obj;
 
-  box = malloc(sizeof(mcrypt_box));
+  box = malloc(sizeof(MCRYPT));
   *box = 0;   /* will populate in mc_initialize */
   obj = Data_Wrap_Struct(klass, 0, mc_free, box);
 
@@ -55,11 +54,10 @@ static VALUE mc_alloc(VALUE klass)
 
 static void mc_free(void *p)
 {
-  mcrypt_box *box = (mcrypt_box *)p;
+  MCRYPT *box = (MCRYPT *)p;
   if (*box != NULL) {
-    MCRYPT td = *box;
-    mcrypt_generic_deinit(td);  /* shutdown */
-    mcrypt_module_close(td);    /* free */
+    mcrypt_generic_deinit(*box);  /* shutdown */
+    mcrypt_module_close(*box);    /* free */
     fprintf(stderr, "Freed Mcrypt\n");
   }
   free(box);
@@ -70,13 +68,12 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE algo, mode, key, iv;
     char *s_algo, *s_mode;
-    mcrypt_box *box;
-    MCRYPT td;
+    MCRYPT *box;
     int rv;
 
     rb_scan_args(argc, argv, "22", &algo, &mode, &key, &iv);
 
-    Data_Get_Struct(self, mcrypt_box, box);
+    Data_Get_Struct(self, MCRYPT, box);
 
     /* sanity check.  should be empty still */
     if (*box != NULL)
@@ -86,8 +83,12 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     s_algo = dup_rbstring(algo, 1);
     s_mode = dup_rbstring(mode, 1);
 
-    td = mcrypt_module_open(s_algo, NULL, s_mode, NULL);
-    if (td == MCRYPT_FAILED) {
+    *box = mcrypt_module_open(s_algo, NULL, s_mode, NULL);
+    if (*box == MCRYPT_FAILED) {
+        /* MCRYPT_FAILED is currently 0, but we should explicitly set
+           to zero in case they change that. We don't want to attempt to
+           free it later. */
+        *box = 0;
         char message[256];
         snprintf(message, sizeof(message),
                  "Could not initialize using algorithm '%s' with mode "
@@ -95,13 +96,12 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
                  s_algo, s_mode);
         free(s_algo);
         free(s_mode);
-        rb_raise(rb_eRuntimeError, message);
+        rb_raise(cInvalidAlgorithmOrModeError, message);
     }
+    fprintf(stderr, "Allocated Mcrypt\n");
     free(s_algo);
     free(s_mode);
 
-    *box = td;
-    fprintf(stderr, "Allocated Mcrypt\n");
 
     if (!NIL_P(key))
         rb_funcall(self, rb_intern("after_init"), 2, key, iv);
@@ -132,6 +132,7 @@ void Init_mcrypt()
     to_string = rb_intern("to_s");
 
     cMcrypt = rb_define_class("Mcrypt", rb_cObject);
+    cInvalidAlgorithmOrModeError = rb_define_class_under(cMcrypt, "InvalidAlgorithmOrModeError", rb_eArgError);
     rb_define_const(cMcrypt, "LIBMCRYPT_VERSION", rb_str_new2(LIBMCRYPT_VERSION));
     rb_define_alloc_func(cMcrypt, mc_alloc);
     rb_define_method(cMcrypt, "initialize", mc_initialize, -1);
