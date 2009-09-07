@@ -64,4 +64,9 @@ class McryptTest < Test::Unit::TestCase
     assert_equal 8, Mcrypt.new(:des, :cbc).block_size
   end
 
+  def test_iv_size
+    assert_equal 32, Mcrypt.new(:rijndael_256, :cfb).iv_size
+    assert_equal 8, Mcrypt.new(:des, :cbc).iv_size
+  end
+
 end
