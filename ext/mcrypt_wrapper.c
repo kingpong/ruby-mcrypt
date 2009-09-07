@@ -118,6 +118,27 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     return self;
 }
 
+static VALUE mc_key_size(VALUE self)
+{
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+    return INT2FIX(mcrypt_enc_get_key_size(*box));
+}
+
+static VALUE mc_block_size(VALUE self)
+{
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+    return INT2FIX(mcrypt_enc_get_block_size(*box));
+}
+
+static VALUE mc_iv_size(VALUE self)
+{
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+    return INT2FIX(mcrypt_enc_get_iv_size(*box));
+}
+
 static VALUE mc_is_block_algorithm(VALUE self)
 {
     MCRYPT *box;
@@ -139,25 +160,11 @@ static VALUE mc_is_block_algorithm_mode(VALUE self)
     return TO_RB_BOOL(mcrypt_enc_is_block_algorithm_mode(*box));
 }
 
-static VALUE mc_key_size(VALUE self)
+static VALUE mc_mode_has_iv(VALUE self)
 {
     MCRYPT *box;
     Data_Get_Struct(self, MCRYPT, box);
-    return INT2FIX(mcrypt_enc_get_key_size(*box));
-}
-
-static VALUE mc_block_size(VALUE self)
-{
-    MCRYPT *box;
-    Data_Get_Struct(self, MCRYPT, box);
-    return INT2FIX(mcrypt_enc_get_block_size(*box));
-}
-
-static VALUE mc_iv_size(VALUE self)
-{
-    MCRYPT *box;
-    Data_Get_Struct(self, MCRYPT, box);
-    return INT2FIX(mcrypt_enc_get_iv_size(*box));
+    return TO_RB_BOOL(mcrypt_enc_mode_has_iv(*box));
 }
 
 static VALUE mc_algorithm_version(VALUE self)
@@ -210,6 +217,7 @@ void Init_mcrypt()
     rb_define_method(cMcrypt, "block_algorithm?", mc_is_block_algorithm, 0);
     rb_define_method(cMcrypt, "block_mode?", mc_is_block_mode, 0);
     rb_define_method(cMcrypt, "block_algorithm_mode?", mc_is_block_algorithm_mode, 0);
+    rb_define_method(cMcrypt, "has_iv?", mc_mode_has_iv, 0);
 
     rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
     rb_define_method(cMcrypt, "mode_version", mc_mode_version, 0);
@@ -217,7 +225,6 @@ void Init_mcrypt()
     /* TODO:
 
        instance methods:
-           mcrypt_enc_is_block_algorithm_mode => block_algorithm_mode?
            mcrypt_enc_mode_has_iv => has_iv?
            mcrypt_enc_get_supported_key_sizes => supported_key_sizes[]
 
