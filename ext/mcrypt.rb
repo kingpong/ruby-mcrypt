@@ -1,0 +1,1 @@
+require 'mcrypt.so'
