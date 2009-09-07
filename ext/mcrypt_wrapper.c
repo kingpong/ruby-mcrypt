@@ -31,8 +31,12 @@
 #define TO_RB_BOOL(V)   ((V) ? Qtrue : Qfalse)
 
 /* utilities */
-static ID to_string;
+static ID    sym_to_s;
 static VALUE to_s(VALUE o);
+
+static ID    sym_canonicalize_algorithm;
+static VALUE canonicalize_algorithm(VALUE o);
+
 static char *dup_rbstring(VALUE o, int include_null);
 
 /* globals */
@@ -55,6 +59,8 @@ static VALUE mc_mode_version(VALUE self);
 /* class methods */
 static VALUE mck_algorithms(VALUE self);
 static VALUE mck_modes(VALUE self);
+static VALUE mck_is_block_algorithm(VALUE self, VALUE algo);
+static VALUE mck_key_size(VALUE self, VALUE algo);
 
 
 /*= IMPLEMENTATION =*/
@@ -93,7 +99,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
         rb_raise(rb_eFatal, "mcrypt binding internal error");
 
     /* convert :rijndael_256 to "rijndael-256" */
-    algo = rb_funcall(cMcrypt, rb_intern("canonicalize_algorithm"), 1, algo);
+    algo = canonicalize_algorithm(algo);
     mode = to_s(mode);
 
     /* mcrypt needs null-terminated strings */
@@ -256,14 +262,21 @@ static VALUE mck_modes(VALUE self)
 
 static VALUE mck_is_block_algorithm(VALUE self, VALUE algo)
 {
-    algo = rb_funcall(cMcrypt, rb_intern("canonicalize_algorithm"), 1, algo);
+    algo = canonicalize_algorithm(algo);
     return TO_RB_BOOL(mcrypt_module_is_block_algorithm(RSTRING(algo)->ptr,NULL));
+}
+
+static VALUE mck_key_size(VALUE self, VALUE algo)
+{
+    algo = canonicalize_algorithm(algo);
+    return INT2FIX(mcrypt_module_get_algo_key_size(RSTRING(algo)->ptr,NULL));
 }
 
 void Init_mcrypt()
 {
     /* look up once, use many */
-    to_string = rb_intern("to_s");
+    sym_to_s = rb_intern("to_s");
+    sym_canonicalize_algorithm = rb_intern("canonicalize_algorithm");
 
     /*= GLOBALS =*/
     cMcrypt = rb_define_class("Mcrypt", rb_cObject);
@@ -288,16 +301,11 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "algorithms", mck_algorithms, 0);
     rb_define_singleton_method(cMcrypt, "modes", mck_modes, 0);
     rb_define_singleton_method(cMcrypt, "block_algorithm?", mck_is_block_algorithm, 1);
+    rb_define_singleton_method(cMcrypt, "key_size", mck_key_size, 1);
 
     /* TODO:
 
-       instance methods:
-           (for copying)
-           mcrypt_enc_get_state
-           mcrypt_enc_set_state
-
        class methods:
-           mcrypt_module_is_block_algorithm(a) => block_algorithm?(a)
            mcrypt_module_get_algo_key_size(a) => key_size(a)
            mcrypt_module_get_algo_block_size(a) => block_size(a)
            mcrypt_mdoule_get_algo_supported_key_sizes(a) => supported_key_sizes(a) / key_sizes(a)
@@ -315,6 +323,11 @@ void Init_mcrypt()
            Mcrypt.mode(m).
                 block_algorithm_mode?
                 block_mode?
+
+       instance methods:
+           (for copying)
+           mcrypt_enc_get_state
+           mcrypt_enc_set_state
        */
 }
 
@@ -324,7 +337,12 @@ void Init_mcrypt()
 static VALUE to_s(VALUE o)
 {
     return rb_obj_is_kind_of(o,rb_cString)
-        ? o : rb_funcall(o, to_string, 0);
+        ? o : rb_funcall(o, sym_to_s, 0);
+}
+
+static VALUE canonicalize_algorithm(VALUE o)
+{
+    return rb_funcall(cMcrypt, sym_canonicalize_algorithm, 1, o);
 }
 
 static char *dup_rbstring(VALUE o, int include_null)

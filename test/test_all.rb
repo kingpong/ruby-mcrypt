@@ -104,4 +104,8 @@ class McryptTest < Test::Unit::TestCase
     assert_equal false, Mcrypt.block_algorithm?(:wake)
   end
 
+  def test_class_key_size
+    assert_equal 24, Mcrypt.key_size(:tripledes)
+  end
+
 end
