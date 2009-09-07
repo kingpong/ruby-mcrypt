@@ -39,6 +39,8 @@ static VALUE canonicalize_algorithm(VALUE o);
 
 static char *dup_rbstring(VALUE o, int include_null);
 
+static VALUE enumerate_key_sizes(int *sizes, int num_of_sizes, int max_size);
+
 /* globals */
 static VALUE cMcrypt;
 static VALUE cInvalidAlgorithmOrModeError;
@@ -187,30 +189,11 @@ static VALUE mc_key_sizes(VALUE self)
 {
     VALUE rv;
     MCRYPT *box;
-    int *sizes, num_of_sizes, i;
+    int *sizes, num_of_sizes;
     Data_Get_Struct(self, MCRYPT, box);
 
     sizes = mcrypt_enc_get_supported_key_sizes(*box, &num_of_sizes);
-    if (sizes == NULL && num_of_sizes == 0) {
-        int max_key_size = mcrypt_enc_get_key_size(*box);
-        rv = rb_ary_new2(max_key_size);
-        for (i = 1; i <= max_key_size; i++) {
-            rb_ary_push(rv, INT2FIX(i));
-        }
-        return rv;
-    }
-    else if (num_of_sizes > 0) {
-        rv = rb_ary_new2(num_of_sizes);
-        for (i = 0; i < num_of_sizes; i++) {
-            rb_ary_push(rv, INT2FIX(sizes[i]));
-        }
-        free(sizes);
-        return rv;
-    }
-    else {
-        rb_raise(rb_eFatal, "mcrypt_enc_get_supported_key_sizes returned invalid result.");
-        return Qnil;    /* quell warning */
-    }
+    return enumerate_key_sizes(sizes, num_of_sizes, mcrypt_enc_get_key_size(*box));
 }
 
 static VALUE mc_algorithm_version(VALUE self)
@@ -279,6 +262,15 @@ static VALUE mck_block_size(VALUE self, VALUE algo)
     return INT2FIX(mcrypt_module_get_algo_block_size(RSTRING(algo)->ptr,NULL));
 }
 
+static VALUE mck_key_sizes(VALUE self, VALUE algo)
+{
+    int *sizes, num_of_sizes, max;
+    algo = canonicalize_algorithm(algo);
+    max = mcrypt_module_get_algo_key_size(RSTRING(algo)->ptr, NULL);
+    sizes = mcrypt_module_get_algo_supported_key_sizes(RSTRING(algo)->ptr, NULL, &num_of_sizes);
+    return enumerate_key_sizes(sizes, num_of_sizes, max);
+}
+
 void Init_mcrypt()
 {
     /* look up once, use many */
@@ -310,6 +302,7 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "block_algorithm?", mck_is_block_algorithm, 1);
     rb_define_singleton_method(cMcrypt, "key_size", mck_key_size, 1);
     rb_define_singleton_method(cMcrypt, "block_size", mck_block_size, 1);
+    rb_define_singleton_method(cMcrypt, "key_sizes", mck_key_sizes, 1);
 
     /* TODO:
 
@@ -360,4 +353,29 @@ static char *dup_rbstring(VALUE o, int include_null)
     if (include_null)
         rv[RSTRING(str)->len] = '\0';
     return rv;
+}
+
+static VALUE enumerate_key_sizes(int *sizes, int num_of_sizes, int max_size)
+{
+    int i;
+    VALUE rv;
+    if (sizes == NULL && num_of_sizes == 0) {
+        rv = rb_ary_new2(max_size);
+        for (i = 1; i <= max_size; i++) {
+            rb_ary_push(rv, INT2FIX(i));
+        }
+        return rv;
+    }
+    else if (num_of_sizes > 0) {
+        rv = rb_ary_new2(num_of_sizes);
+        for (i = 0; i < num_of_sizes; i++) {
+            rb_ary_push(rv, INT2FIX(sizes[i]));
+        }
+        free(sizes);
+        return rv;
+    }
+    else {
+        rb_raise(rb_eFatal, "mcrypt_enc_get_supported_key_sizes returned invalid result.");
+        return Qnil;    /* quell warning */
+    }
 }

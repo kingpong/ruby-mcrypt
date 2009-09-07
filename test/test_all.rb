@@ -113,4 +113,10 @@ class McryptTest < Test::Unit::TestCase
     assert_equal 8, Mcrypt.block_size(:des)
   end
 
+  def test_class_key_sizes
+    assert_equal [16,24,32], Mcrypt.key_sizes(:twofish)
+    assert_equal [32], Mcrypt.key_sizes(:wake)
+    assert_equal (1..128).to_a, Mcrypt.key_sizes(:rc2)
+  end
+
 end
