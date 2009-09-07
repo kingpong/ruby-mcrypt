@@ -119,4 +119,9 @@ class McryptTest < Test::Unit::TestCase
     assert_equal (1..128).to_a, Mcrypt.key_sizes(:rc2)
   end
 
+  def test_class_block_algorithm_mode_b
+    assert_equal true, Mcrypt.block_algorithm_mode?(:cbc)
+    assert_equal false, Mcrypt.block_algorithm_mode?(:stream)
+  end
+
 end
