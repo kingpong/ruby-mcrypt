@@ -2,3 +2,5 @@
 *.bak
 *.bundle
 *.o
+*.swp
+Makefile
