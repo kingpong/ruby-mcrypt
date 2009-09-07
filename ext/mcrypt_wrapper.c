@@ -46,14 +46,9 @@ static VALUE mc_is_block_algorithm(VALUE self);
 static VALUE mc_alloc(VALUE klass)
 {
   MCRYPT *box;
-  VALUE obj;
-
   box = malloc(sizeof(MCRYPT));
   *box = 0;   /* will populate in mc_initialize */
-  obj = Data_Wrap_Struct(klass, 0, mc_free, box);
-
-  fprintf(stderr, "Allocated Box\n");
-  return obj;
+  return Data_Wrap_Struct(klass, 0, mc_free, box);
 }
 
 static void mc_free(void *p)
@@ -62,10 +57,8 @@ static void mc_free(void *p)
   if (*box != NULL) {
     mcrypt_generic_deinit(*box);  /* shutdown */
     mcrypt_module_close(*box);    /* free */
-    fprintf(stderr, "Freed Mcrypt\n");
   }
   free(box);
-  fprintf(stderr, "Freed Box\n");
 }
 
 static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
@@ -102,10 +95,8 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
         free(s_mode);
         rb_raise(cInvalidAlgorithmOrModeError, message);
     }
-    fprintf(stderr, "Allocated Mcrypt\n");
     free(s_algo);
     free(s_mode);
-
 
     if (!NIL_P(key))
         rb_funcall(self, rb_intern("after_init"), 2, key, iv);
