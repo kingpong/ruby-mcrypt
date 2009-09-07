@@ -27,7 +27,8 @@
 #include <string.h>
 #include <mcrypt.h>
 
-#define RSTR_N(V) (NIL_P(V) ? NULL : RSTRING(V)->ptr)
+#define RSTR_N(V)       (NIL_P(V) ? NULL : RSTRING(V)->ptr)
+#define TO_RB_BOOL(V)   ((V) ? Qtrue : Qfalse)
 
 static ID to_string;
 static VALUE to_s(VALUE o);
@@ -116,8 +117,7 @@ static VALUE mc_is_block_algorithm(VALUE self)
 {
     MCRYPT *box;
     Data_Get_Struct(self, MCRYPT, box);
-    return mcrypt_enc_is_block_algorithm(*box)
-        ? Qtrue : Qfalse;
+    return TO_RB_BOOL(mcrypt_enc_is_block_algorithm(*box));
 }
 
 static VALUE to_s(VALUE o)
