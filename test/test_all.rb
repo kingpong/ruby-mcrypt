@@ -36,5 +36,9 @@ class McryptTest < Test::Unit::TestCase
     assert_equal Mcrypt.new(:tripledes, :cbc).is_block_algorithm, true
     assert_equal Mcrypt.new(:wake, :stream).is_block_algorithm, false
   end
+  
+  def test_key_size
+    assert_equal Mcrypt.new(:tripledes, :cbc).key_size, 24
+  end
 
 end
