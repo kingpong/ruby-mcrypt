@@ -41,19 +41,6 @@ class McryptTest < Test::Unit::TestCase
     assert_equal "cfb", Mcrypt.new(:rijndael_256, :cfb).mode
     assert_equal "cfb", Mcrypt.new(:rijndael_256, "cfb").mode
   end
-
-  def test_algorithm_version
-    assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).algorithm_version
-  end
-
-  def test_mode_version
-    assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).mode_version
-  end
-
-  def test_block_algorithm_b
-    assert_equal true, Mcrypt.new(:tripledes, :cbc).block_algorithm?
-    assert_equal false, Mcrypt.new(:wake, :stream).block_algorithm?
-  end
   
   def test_key_size
     assert_equal 24, Mcrypt.new(:tripledes, :cbc).key_size
@@ -67,6 +54,25 @@ class McryptTest < Test::Unit::TestCase
   def test_iv_size
     assert_equal 32, Mcrypt.new(:rijndael_256, :cfb).iv_size
     assert_equal 8, Mcrypt.new(:des, :cbc).iv_size
+  end
+
+  def test_block_algorithm_b
+    assert_equal true, Mcrypt.new(:tripledes, :cbc).block_algorithm?
+    assert_equal false, Mcrypt.new(:wake, :stream).block_algorithm?
+  end
+
+  def test_block_mode_b
+    assert_equal true, Mcrypt.new(:tripledes, :cbc).block_mode?
+    assert_equal false, Mcrypt.new(:wake, :stream).block_mode?
+  end
+
+
+  def test_algorithm_version
+    assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).algorithm_version
+  end
+
+  def test_mode_version
+    assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).mode_version
   end
 
 end
