@@ -66,6 +66,8 @@ static VALUE mck_key_size(VALUE self, VALUE algo);
 static VALUE mck_block_size(VALUE self, VALUE algo);
 static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode);
 static VALUE mck_is_block_mode(VALUE self, VALUE mode);
+static VALUE mck_algorithm_version(VALUE self, VALUE algo);
+static VALUE mck_mode_version(VALUE self, VALUE mode);
 
 
 /*= IMPLEMENTATION =*/
@@ -285,6 +287,18 @@ static VALUE mck_is_block_mode(VALUE self, VALUE mode)
     return TO_RB_BOOL(mcrypt_module_is_block_mode(RSTRING(mode)->ptr,NULL));
 }
 
+static VALUE mck_algorithm_version(VALUE self, VALUE algo)
+{
+    algo = canonicalize_algorithm(algo);
+    return INT2FIX(mcrypt_module_algorithm_version(RSTRING(algo)->ptr, NULL));
+}
+
+static VALUE mck_mode_version(VALUE self, VALUE mode)
+{
+    mode = to_s(mode);
+    return INT2FIX(mcrypt_module_mode_version(RSTRING(mode)->ptr, NULL));
+}
+
 void Init_mcrypt()
 {
     /* look up once, use many */
@@ -319,12 +333,25 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "key_sizes", mck_key_sizes, 1);
     rb_define_singleton_method(cMcrypt, "block_algorithm_mode?", mck_is_block_algorithm_mode, 1);
     rb_define_singleton_method(cMcrypt, "block_mode?", mck_is_block_mode, 1);
+    rb_define_singleton_method(cMcrypt, "algorithm_version", mck_algorithm_version, 1);
+    rb_define_singleton_method(cMcrypt, "mode_version", mck_mode_version, 1);
 
     /* TODO:
 
-       class methods:
-           mcrypt_module_is_block_mode(m) => block_mode?(m)
+       instance methods:
+           init / deinit
+           encrypt
+           decrypt
+           self_test ?
 
+           (for copying)
+           mcrypt_enc_get_state
+           mcrypt_enc_set_state
+
+       class methods:
+           algorithm_version
+           mode_version
+           self_test ?
            ruby:
            Mcrypt.algorithm(a).
                 block_algorithm?
@@ -335,11 +362,6 @@ void Init_mcrypt()
            Mcrypt.mode(m).
                 block_algorithm_mode?
                 block_mode?
-
-       instance methods:
-           (for copying)
-           mcrypt_enc_get_state
-           mcrypt_enc_set_state
        */
 }
 

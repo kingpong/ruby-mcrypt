@@ -129,4 +129,12 @@ class McryptTest < Test::Unit::TestCase
     assert_equal false, Mcrypt.block_mode?(:stream)
   end
 
+  def test_class_algorithm_version
+    assert_kind_of Integer, Mcrypt.algorithm_version(:rijndael_256)
+  end
+
+  def test_class_mode_version
+    assert_kind_of Integer, Mcrypt.mode_version(:cfb)
+  end
+
 end
