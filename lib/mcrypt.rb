@@ -13,7 +13,7 @@ class Mcrypt
   end
 
   # converts :rijndael_256 to "rijndael-256"
-  def canonicalize_algorithm_name(algo) #:nodoc:
+  def canonicalize_algorithm(algo) #:nodoc:
     algo.to_s.gsub(/_/,'-')
   end
 

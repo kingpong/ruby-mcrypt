@@ -78,7 +78,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
         rb_raise(rb_eFatal, "mcrypt binding internal error");
 
     /* convert :rijndael_256 to "rijndael-256" */
-    algo = rb_funcall(self, rb_intern("canonicalize_algorithm_name"), 1, algo);
+    algo = rb_funcall(self, rb_intern("canonicalize_algorithm"), 1, algo);
     mode = to_s(mode);
 
     /* mcrypt needs null-terminated strings */
