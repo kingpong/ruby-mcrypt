@@ -179,7 +179,7 @@ void Init_mcrypt()
     rb_define_const(cMcrypt, "LIBMCRYPT_VERSION", rb_str_new2(LIBMCRYPT_VERSION));
     rb_define_alloc_func(cMcrypt, mc_alloc);
     rb_define_method(cMcrypt, "initialize", mc_initialize, -1);
-    rb_define_method(cMcrypt, "is_block_algorithm", mc_is_block_algorithm, 0);
+    rb_define_method(cMcrypt, "block_algorithm?", mc_is_block_algorithm, 0);
     rb_define_method(cMcrypt, "key_size", mc_key_size, 0);
     rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
     rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
@@ -188,7 +188,6 @@ void Init_mcrypt()
     /* TODO:
 
        instance methods:
-           rename is_block_algorithm => block_algorithm?
            mcrypt_enc_get_iv_size => iv_size
            mcrypt_enc_is_block_mode => block_mode?
            mcrypt_enc_is_block_algorithm_mode => block_algorithm_mode?
