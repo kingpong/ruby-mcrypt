@@ -42,6 +42,14 @@ class McryptTest < Test::Unit::TestCase
     assert_equal "cfb", Mcrypt.new(:rijndael_256, "cfb").mode
   end
 
+  def test_algorithm_version
+    assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).algorithm_version
+  end
+
+  def test_mode_version
+    assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).mode_version
+  end
+
   def test_is_block_algorithm
     assert_equal true, Mcrypt.new(:tripledes, :cbc).is_block_algorithm
     assert_equal false, Mcrypt.new(:wake, :stream).is_block_algorithm

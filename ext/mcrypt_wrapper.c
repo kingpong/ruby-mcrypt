@@ -43,6 +43,9 @@ static void  mc_free(void *p);
 static VALUE mc_initialize(int argc, VALUE *argv, VALUE self);
 static VALUE mc_is_block_algorithm(VALUE self);
 static VALUE mc_key_size(VALUE self);
+static VALUE mc_block_size(VALUE self);
+static VALUE mc_algorithm_version(VALUE self);
+static VALUE mc_mode_version(VALUE self);
 
 static VALUE mc_alloc(VALUE klass)
 {
@@ -133,6 +136,22 @@ static VALUE mc_block_size(VALUE self)
     return INT2FIX(mcrypt_enc_get_block_size(*box));
 }
 
+static VALUE mc_algorithm_version(VALUE self)
+{
+    int version;
+    VALUE algo = rb_iv_get(self,"@algorithm");
+    version = mcrypt_module_algorithm_version(RSTRING(algo)->ptr, NULL);
+    return INT2FIX(version);
+}
+
+static VALUE mc_mode_version(VALUE self)
+{
+    int version;
+    VALUE mode = rb_iv_get(self,"@mode");
+    version = mcrypt_module_mode_version(RSTRING(mode)->ptr, NULL);
+    return INT2FIX(version);
+}
+
 static VALUE to_s(VALUE o)
 {
     return rb_obj_is_kind_of(o,rb_cString)
@@ -163,5 +182,6 @@ void Init_mcrypt()
     rb_define_method(cMcrypt, "is_block_algorithm", mc_is_block_algorithm, 0);
     rb_define_method(cMcrypt, "key_size", mc_key_size, 0);
     rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
-//    rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
+    rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
+    rb_define_method(cMcrypt, "mode_version", mc_mode_version, 0);
 }
