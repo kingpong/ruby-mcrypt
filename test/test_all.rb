@@ -71,6 +71,10 @@ class McryptTest < Test::Unit::TestCase
     assert_equal false, Mcrypt.new(:wake, :stream).block_algorithm_mode?
   end
 
+  def test_mode_has_iv_b
+    assert_equal true, Mcrypt.new(:tripledes, :cbc).has_iv?
+    assert_equal false, Mcrypt.new(:tripledes, :ecb).has_iv?
+  end
 
   def test_algorithm_version
     assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).algorithm_version
