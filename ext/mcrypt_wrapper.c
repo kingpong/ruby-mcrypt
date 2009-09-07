@@ -167,6 +167,36 @@ static VALUE mc_mode_has_iv(VALUE self)
     return TO_RB_BOOL(mcrypt_enc_mode_has_iv(*box));
 }
 
+static VALUE mc_key_sizes(VALUE self)
+{
+    VALUE rv;
+    MCRYPT *box;
+    int *sizes, num_of_sizes, i;
+    Data_Get_Struct(self, MCRYPT, box);
+
+    sizes = mcrypt_enc_get_supported_key_sizes(*box, &num_of_sizes);
+    if (sizes == NULL && num_of_sizes == 0) {
+        int max_key_size = mcrypt_enc_get_key_size(*box);
+        rv = rb_ary_new2(max_key_size);
+        for (i = 1; i <= max_key_size; i++) {
+            rb_ary_push(rv, INT2FIX(i));
+        }
+        return rv;
+    }
+    else if (num_of_sizes > 0) {
+        rv = rb_ary_new2(num_of_sizes);
+        for (i = 0; i < num_of_sizes; i++) {
+            rb_ary_push(rv, INT2FIX(sizes[i]));
+        }
+        free(sizes);
+        return rv;
+    }
+    else {
+        rb_raise(rb_eFatal, "mcrypt_enc_get_supported_key_sizes returned invalid result.");
+        return Qnil;    /* quell warning */
+    }
+}
+
 static VALUE mc_algorithm_version(VALUE self)
 {
     int version;
@@ -219,15 +249,14 @@ void Init_mcrypt()
     rb_define_method(cMcrypt, "block_algorithm_mode?", mc_is_block_algorithm_mode, 0);
     rb_define_method(cMcrypt, "has_iv?", mc_mode_has_iv, 0);
 
+    rb_define_method(cMcrypt, "key_sizes", mc_key_sizes, 0);
+
     rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
     rb_define_method(cMcrypt, "mode_version", mc_mode_version, 0);
 
     /* TODO:
 
        instance methods:
-           mcrypt_enc_mode_has_iv => has_iv?
-           mcrypt_enc_get_supported_key_sizes => supported_key_sizes[]
-
            (for copying)
            mcrypt_enc_get_state
            mcrypt_enc_set_state

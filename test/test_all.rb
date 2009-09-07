@@ -76,6 +76,12 @@ class McryptTest < Test::Unit::TestCase
     assert_equal false, Mcrypt.new(:tripledes, :ecb).has_iv?
   end
 
+  def test_key_sizes
+    assert_equal [16,24,32], Mcrypt.new(:twofish, :cbc).key_sizes
+    assert_equal [32], Mcrypt.new(:wake, :stream).key_sizes
+    assert_equal (1..128).to_a, Mcrypt.new(:rc2, :cbc).key_sizes
+  end
+
   def test_algorithm_version
     assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).algorithm_version
   end
