@@ -184,4 +184,41 @@ void Init_mcrypt()
     rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
     rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
     rb_define_method(cMcrypt, "mode_version", mc_mode_version, 0);
+
+    /* TODO:
+
+       instance methods:
+           rename is_block_algorithm => block_algorithm?
+           mcrypt_enc_get_iv_size => iv_size
+           mcrypt_enc_is_block_mode => block_mode?
+           mcrypt_enc_is_block_algorithm_mode => block_algorithm_mode?
+           mcrypt_enc_mode_has_iv => has_iv?
+           mcrypt_enc_get_supported_key_sizes => supported_key_sizes[]
+
+           (for copying)
+           mcrypt_enc_get_state
+           mcrypt_enc_set_state
+
+       class methods:
+           mcrypt_list_algorithms => algorithms
+           mcrypt_list_modes => modes
+           mcrypt_module_is_block_algorithm(a) => block_algorithm?(a)
+           mcrypt_module_get_algo_key_size(a) => key_size(a)
+           mcrypt_module_get_algo_block_size(a) => block_size(a)
+           mcrypt_mdoule_get_algo_supported_key_sizes(a) => supported_key_sizes(a) / key_sizes(a)
+
+           mcrypt_module_is_block_algorithm_mode(m) => block_algorithm_mode?(m)
+           mcrypt_module_is_block_mode(m) => block_mode?(m)
+
+           ruby:
+           Mcrypt.algorithm(a).
+                block_algorithm?
+                key_size
+                block_size
+                supported_key_sizes (alias key_sizes)
+
+           Mcrypt.mode(m).
+                block_algorithm_mode?
+                block_mode?
+       */
 }
