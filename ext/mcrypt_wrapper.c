@@ -39,6 +39,9 @@ static VALUE cInvalidAlgorithmOrModeError;
 static VALUE mc_alloc(VALUE klass);
 static void  mc_free(void *p);
 
+static VALUE mc_initialize(int argc, VALUE *argv, VALUE self);
+static VALUE mc_is_block_algorithm(VALUE self);
+
 static VALUE mc_alloc(VALUE klass)
 {
   MCRYPT *box;
@@ -109,6 +112,14 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     return self;
 }
 
+static VALUE mc_is_block_algorithm(VALUE self)
+{
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+    return mcrypt_enc_is_block_algorithm(*box)
+        ? Qtrue : Qfalse;
+}
+
 static VALUE to_s(VALUE o)
 {
     return rb_obj_is_kind_of(o,rb_cString)
@@ -136,7 +147,7 @@ void Init_mcrypt()
     rb_define_const(cMcrypt, "LIBMCRYPT_VERSION", rb_str_new2(LIBMCRYPT_VERSION));
     rb_define_alloc_func(cMcrypt, mc_alloc);
     rb_define_method(cMcrypt, "initialize", mc_initialize, -1);
-//    rb_define_method(cMcrypt, "is_block_algorithm", mc_is_block_algorithm, 0);
+    rb_define_method(cMcrypt, "is_block_algorithm", mc_is_block_algorithm, 0);
 //    rb_define_method(cMcrypt, "max_key_size", mc_max_key_size, 0);
 //    rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
 //    rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
