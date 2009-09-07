@@ -213,20 +213,19 @@ static VALUE mc_mode_version(VALUE self)
     return INT2FIX(version);
 }
 
-static VALUE to_s(VALUE o)
+static VALUE mc_algorithms(VALUE self)
 {
-    return rb_obj_is_kind_of(o,rb_cString)
-        ? o : rb_funcall(o, to_string, 0);
-}
+    VALUE rv;
+    int size, i;
+    char **list;
 
-static char *dup_rbstring(VALUE o, int include_null)
-{
-    char *rv;
-    VALUE str = to_s(o);
-    rv = malloc(RSTRING(str)->len + (include_null ? 1 : 0));
-    memcpy(rv, RSTRING(str)->ptr, RSTRING(str)->len);
-    if (include_null)
-        rv[RSTRING(str)->len] = '\0';
+    list = mcrypt_list_algorithms(NULL, &size);
+    rv = rb_ary_new2(size);
+    for (i = 0; i < size; i++) {
+        rb_ary_push(rv, rb_str_new2(list[i]));
+    }
+    mcrypt_free_p(list, size);
+
     return rv;
 }
 
@@ -235,24 +234,27 @@ void Init_mcrypt()
     /* look up once, use many */
     to_string = rb_intern("to_s");
 
+    /*= GLOBALS =*/
     cMcrypt = rb_define_class("Mcrypt", rb_cObject);
     cInvalidAlgorithmOrModeError = rb_define_class_under(cMcrypt, "InvalidAlgorithmOrModeError", rb_eArgError);
     rb_define_const(cMcrypt, "LIBMCRYPT_VERSION", rb_str_new2(LIBMCRYPT_VERSION));
     rb_define_alloc_func(cMcrypt, mc_alloc);
+
+    /*= INSTANCE METHODS =*/
     rb_define_method(cMcrypt, "initialize", mc_initialize, -1);
     rb_define_method(cMcrypt, "key_size", mc_key_size, 0);
     rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
     rb_define_method(cMcrypt, "iv_size", mc_iv_size, 0);
-
     rb_define_method(cMcrypt, "block_algorithm?", mc_is_block_algorithm, 0);
     rb_define_method(cMcrypt, "block_mode?", mc_is_block_mode, 0);
     rb_define_method(cMcrypt, "block_algorithm_mode?", mc_is_block_algorithm_mode, 0);
     rb_define_method(cMcrypt, "has_iv?", mc_mode_has_iv, 0);
-
     rb_define_method(cMcrypt, "key_sizes", mc_key_sizes, 0);
-
     rb_define_method(cMcrypt, "algorithm_version", mc_algorithm_version, 0);
     rb_define_method(cMcrypt, "mode_version", mc_mode_version, 0);
+
+    /*= CLASS METHODS =*/
+    rb_define_singleton_method(cMcrypt, "algorithms", mc_algorithms, 0);
 
     /* TODO:
 
@@ -262,7 +264,6 @@ void Init_mcrypt()
            mcrypt_enc_set_state
 
        class methods:
-           mcrypt_list_algorithms => algorithms
            mcrypt_list_modes => modes
            mcrypt_module_is_block_algorithm(a) => block_algorithm?(a)
            mcrypt_module_get_algo_key_size(a) => key_size(a)
@@ -283,4 +284,24 @@ void Init_mcrypt()
                 block_algorithm_mode?
                 block_mode?
        */
+}
+
+
+/* UTILITIES */
+
+static VALUE to_s(VALUE o)
+{
+    return rb_obj_is_kind_of(o,rb_cString)
+        ? o : rb_funcall(o, to_string, 0);
+}
+
+static char *dup_rbstring(VALUE o, int include_null)
+{
+    char *rv;
+    VALUE str = to_s(o);
+    rv = malloc(RSTRING(str)->len + (include_null ? 1 : 0));
+    memcpy(rv, RSTRING(str)->ptr, RSTRING(str)->len);
+    if (include_null)
+        rv[RSTRING(str)->len] = '\0';
+    return rv;
 }

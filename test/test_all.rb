@@ -90,4 +90,9 @@ class McryptTest < Test::Unit::TestCase
     assert_kind_of Integer, Mcrypt.new(:rijndael_256, :cfb).mode_version
   end
 
+  # CLASS METHODS
+  def test_algorithms
+    assert_equal ['tripledes','twofish'], Mcrypt.algorithms.grep(/tripledes|twofish/).sort
+  end
+
 end
