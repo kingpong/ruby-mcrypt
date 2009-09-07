@@ -91,11 +91,17 @@ class McryptTest < Test::Unit::TestCase
   end
 
   # CLASS METHODS
-  def test_algorithms
+  def test_class_algorithms
     assert_equal ['tripledes','twofish'], Mcrypt.algorithms.grep(/tripledes|twofish/).sort
   end
-  def test_modes
+
+  def test_class_modes
     assert_equal ['cbc','cfb'], Mcrypt.modes.grep(/\A(cbc|cfb)\Z/).sort
+  end
+
+  def test_class_block_algorithm_b
+    assert_equal true, Mcrypt.block_algorithm?(:tripledes)
+    assert_equal false, Mcrypt.block_algorithm?(:wake)
   end
 
 end

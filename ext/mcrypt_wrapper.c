@@ -53,8 +53,8 @@ static VALUE mc_algorithm_version(VALUE self);
 static VALUE mc_mode_version(VALUE self);
 
 /* class methods */
-static VALUE mc_algorithms(VALUE self);
-static VALUE mc_modes(VALUE self);
+static VALUE mck_algorithms(VALUE self);
+static VALUE mck_modes(VALUE self);
 
 
 /*= IMPLEMENTATION =*/
@@ -93,7 +93,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
         rb_raise(rb_eFatal, "mcrypt binding internal error");
 
     /* convert :rijndael_256 to "rijndael-256" */
-    algo = rb_funcall(self, rb_intern("canonicalize_algorithm"), 1, algo);
+    algo = rb_funcall(cMcrypt, rb_intern("canonicalize_algorithm"), 1, algo);
     mode = to_s(mode);
 
     /* mcrypt needs null-terminated strings */
@@ -222,7 +222,7 @@ static VALUE mc_mode_version(VALUE self)
     return INT2FIX(version);
 }
 
-static VALUE mc_algorithms(VALUE self)
+static VALUE mck_algorithms(VALUE self)
 {
     VALUE rv;
     int size, i;
@@ -238,7 +238,7 @@ static VALUE mc_algorithms(VALUE self)
     return rv;
 }
 
-static VALUE mc_modes(VALUE self)
+static VALUE mck_modes(VALUE self)
 {
     VALUE rv;
     int size, i;
@@ -252,6 +252,12 @@ static VALUE mc_modes(VALUE self)
     mcrypt_free_p(list, size);
 
     return rv;
+}
+
+static VALUE mck_is_block_algorithm(VALUE self, VALUE algo)
+{
+    algo = rb_funcall(cMcrypt, rb_intern("canonicalize_algorithm"), 1, algo);
+    return TO_RB_BOOL(mcrypt_module_is_block_algorithm(RSTRING(algo)->ptr,NULL));
 }
 
 void Init_mcrypt()
@@ -279,8 +285,9 @@ void Init_mcrypt()
     rb_define_method(cMcrypt, "mode_version", mc_mode_version, 0);
 
     /*= CLASS METHODS =*/
-    rb_define_singleton_method(cMcrypt, "algorithms", mc_algorithms, 0);
-    rb_define_singleton_method(cMcrypt, "modes", mc_modes, 0);
+    rb_define_singleton_method(cMcrypt, "algorithms", mck_algorithms, 0);
+    rb_define_singleton_method(cMcrypt, "modes", mck_modes, 0);
+    rb_define_singleton_method(cMcrypt, "block_algorithm?", mck_is_block_algorithm, 1);
 
     /* TODO:
 
@@ -290,7 +297,6 @@ void Init_mcrypt()
            mcrypt_enc_set_state
 
        class methods:
-           mcrypt_list_modes => modes
            mcrypt_module_is_block_algorithm(a) => block_algorithm?(a)
            mcrypt_module_get_algo_key_size(a) => key_size(a)
            mcrypt_module_get_algo_block_size(a) => block_size(a)
