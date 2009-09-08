@@ -13,4 +13,5 @@ Echoe.new(project, version) do |p|
   p.email = "philip@pastemagazine.com"
   p.ignore_pattern = ["tmp/*","script/*","InstalledFiles"]
   p.development_dependencies = []
+  p.rdoc_pattern = ["lib/mcrypt.rb", "ext/mcrypt_wrapper.c"]
 end

@@ -38,17 +38,13 @@ class Mcrypt
 
   class << self
 
+    # Provides information about the specified algorithm.
     # Returns a hash with the following keys:
-    #
-    # +:block_algorithm+: true if the algorithm operates in blocks (mutually exclusive with stream_algorithm)
-    #
-    # +:stream_algorithm+: true if the algorithm is a stream algorithm (mutually exclusive with block_algorithm)
-    #
-    # +:block_size+: the size of blocks the algorithm works with (in bytes)
-    #
-    # +:key_size+: the maximum key size this algorithm will accept (in bytes)
-    #
-    # +:key_sizes+: an array containing all the key sizes the algorithm will accept (in bytes)
+    # [:block_algorithm]  true if the algorithm operates in blocks (mutually exclusive with stream_algorithm)
+    # [:stream_algorithm] true if the algorithm operates in bytes (mutually exclusive with block_algorithm)
+    # [:block_size]       the size of blocks the algorithm works with (in bytes)
+    # [:key_size]         the maximum key size this algorithm will accept (in bytes)
+    # [:key_sizes]        an array containing all the key sizes the algorithm will accept (in bytes)
     #
     def algorithm_info(algorithm_name)
       {
@@ -61,21 +57,19 @@ class Mcrypt
       }
     end
 
+    # Returns true if the algorithm specified operates in bytes.
+    # This is mutually exclusive with <tt>block_algorithm?</tt>.
     def stream_algorithm?(algorithm_name)
       ! block_algorithm?(algorithm_name)
     end
 
+    # Provides information about the specified operation mode.
     # Returns a hash with the following keys:
-    #
-    # +:block_mode+: true if the mode operates in blocks (mutually exclusive with stream_mode)
-    #
-    # +:stream_mode+: true if the mode operates in bytes (mutually exclusive with block_mode)
-    #
-    # +:block_algorithm_mode+: true if the mode is for use with block algorithms (mutually exclusive with stream_algorithm_mode)
-    #
-    # +:stream_algorithm_mode+: true if the mode is for use with stream algorithms (mutually exclusive with block_algorithm_mode)
-    #
-    # +:mode_version+: an integer identifying the version of the mode implementation
+    # [:block_mode]            true if the mode operates in blocks (mutually exclusive with stream_mode)
+    # [:stream_mode]           true if the mode operates in bytes (mutually exclusive with block_mode)
+    # [:block_algorithm_mode]  true if the mode is for use with block algorithms (mutually exclusive with stream_algorithm_mode)
+    # [:stream_algorithm_mode] true if the mode is for use with stream algorithms (mutually exclusive with block_algorithm_mode)
+    # [:mode_version]          an integer identifying the version of the mode implementation
     #
     def mode_info(mode_name)
       {
@@ -87,10 +81,14 @@ class Mcrypt
       }
     end
 
+    # Returns true if the mode specified operates in bytes.
+    # This is mutually exclusive with <tt>block_mode?</tt>.
     def stream_mode?(mode_name)
       ! block_mode?(mode_name)
     end
 
+    # Returns true if the mode specified is for use with stream algorithms (e.g. ARCFOUR)
+    # This is mutually exclusive with <tt>block_algorithm_mode?</tt>.
     def stream_algorithm_mode?(mode_name)
       ! block_algorithm_mode?(mode_name)
     end
@@ -98,13 +96,34 @@ class Mcrypt
     # Converts :rijndael_256 to "rijndael-256".
     # No need to call manually -- it's called for you when needed.
     def canonicalize_algorithm(algo) #:nodoc:
-      algo.to_s.gsub(/_/,'-')
+      algo.to_s.downcase.gsub(/_/,'-')
     end
   end
 
-  attr_reader :algorithm, :mode
-  attr_reader :key, :iv, :padding
+  # The canonical name of the algorithm currently in use.
+  attr_reader :algorithm
 
+  # The name of the mode currently in use.
+  attr_reader :mode
+
+  # The key currently in use (raw binary).
+  attr_reader :key
+
+  # The IV currently in use (raw binary).
+  attr_reader :iv
+
+  # One of +false+ (default), <tt>:pkcs</tt> or <tt>:zeros</tt>.  See <tt>padding=</tt> for details.
+  attr_reader :padding
+
+  # Set the cryptographic key to be used. This is the <em>final raw
+  # binary representation</em> of the key (i.e. not base64 or hex-encoded).
+  #
+  # The key is validated to ensure it is an acceptable length for the
+  # algorithm currently in use (specified in call to +new+).
+  #
+  # The key cannot be reassigned while the object is mid-encryption/decryption
+  # (e.g. after encrypt_more but before encrypt_finish).
+  # Attempting to do so will raise an exception.
   def key=(new_key)
     if @opened
       raise(RuntimeError, "cannot change key mid-stream")
@@ -112,6 +131,16 @@ class Mcrypt
     @key = validate_key(new_key)
   end
 
+  # Set the initialization vector (IV) to be used. This is the <em>final
+  # raw binary representation</em> of the key (i.e. not base64 or hex-encoded).
+  #
+  # The IV cannot be reassigned while the object is mid-encryption/decryption
+  # (e.g. after encrypt_more but before encrypt_finish).
+  # Attempting to do so will raise an exception.
+  #
+  # If the mode in use does not use an IV and +new_iv+ is non-nil,
+  # an exception will be raised to prevent you shooting yourself in
+  # the foot.
   def iv=(new_iv)
     if @opened
       raise(RuntimeError, "cannot change IV mid-stream")
@@ -119,6 +148,36 @@ class Mcrypt
     @iv = validate_iv(new_iv)
   end
 
+  # Set the padding technique to be used. Most ciphers work in
+  # blocks, not bytes, so unless you know that the size of your
+  # plaintext will always be a multiple of the cipher's block size,
+  # you'll need to use some sort of padding.
+  #
+  # <tt>padding_type.to_s</tt> should be one of:
+  #
+  # ["pkcs","pkcs5","pkcs7"]
+  #   Use pkcs5/7 padding which is safe for use with arbitrary binary
+  #   inputs (as opposed to null-terminated C-strings). Each byte of
+  #   padding contains the number of bytes of padding used. For example,
+  #   if 5 bytes of padding are needed, each byte has the value 0x05. See
+  #   {RFC 2315}[http://tools.ietf.org/html/rfc2315#page-22] for a more
+  #   detailed explanation. Padding is <em>always</em> added to
+  #   disambiguate an incomplete message from one that happens to fall on
+  #   block boundaries.
+  #
+  # ["zeros"]
+  #   Pads the plaintext with NUL characters. This works fine with C-
+  #   strings. Don't use it with anything that might have other embedded
+  #   nulls.
+  #
+  # ["none"]
+  #   No padding is used. Will throw exceptions if the input size does
+  #   not fall on block boundaries.
+  #
+  # You can also pass +true+ (which means "pkcs") or +false+ (no
+  # padding). No padding is used by default.
+  #
+  # N.B. This is not a feature of libmcrypt but of this Ruby module.
   def padding=(padding_type)
     @padding = case padding_type.to_s
       when "true", /\Apkcs/
@@ -132,10 +191,16 @@ class Mcrypt
       end
   end
 
+  # Returns true if the mode in use operates in bytes.
   def stream_mode?
     ! block_mode?
   end
 
+  # Encrypts +plaintext+ and returns the encrypted result in one step.
+  # Use this for small inputs.
+  #
+  # To save memory when encrypting larger inputs, process the plaintext
+  # in chunks instead by using +encrypt_more+ and +encrypt_finish+.
   def encrypt(plaintext)
     if @opened
       raise(RuntimeError, "cannot combine streaming use and atomic use")
@@ -143,6 +208,11 @@ class Mcrypt
     encrypt_more(plaintext) << encrypt_finish
   end
 
+  # Encrypts +plaintext+ and returns a chunk of ciphertext. Input to
+  # this function is buffered across calls until it is large enough to
+  # fill a complete block (as defined by the algorithm in use), at which
+  # point the encrypted data will be returned. If there is not enough
+  # buffer to encrypt an entire block, an empty string will be returned.
   def encrypt_more(plaintext)
     open_td
 
@@ -161,6 +231,8 @@ class Mcrypt
     end
   end
 
+  # Completes the encryption process and returns the final ciphertext chunk if
+  # any.
   def encrypt_finish
     open_td
 
@@ -182,6 +254,11 @@ class Mcrypt
     close_td
   end
 
+  # Decrypts +ciphertext+ and returns the decrypted result in one step.
+  # Use this for small inputs.
+  #
+  # To save memory when decrypting larger inputs, process the ciphertext
+  # in chunks instead by using +decrypt_more+ and +decrypt_finish+.
   def decrypt(ciphertext)
     if @opened
       raise(RuntimeError, "cannot combine streaming use and atomic use")
@@ -189,6 +266,12 @@ class Mcrypt
     decrypt_more(ciphertext) << decrypt_finish
   end
 
+  # Decrypts +ciphertext+ and returns a chunk of plaintext. Input to
+  # this function is buffered across calls until it is large enough to
+  # safely perform the decryption (as defined by the block size of
+  # algorithm in use). When there is enough data, a chunk of the
+  # decrypted data is returned. Otherwise it returns an empty string.
+  # 
   def decrypt_more(ciphertext)
     open_td
 
@@ -209,6 +292,7 @@ class Mcrypt
     end
   end
 
+  # Completes the decryption process and returns the final plaintext chunk.
   def decrypt_finish
     open_td
 
@@ -242,12 +326,16 @@ class Mcrypt
   private
 
   def buffer
-    @buffer ||= ""
+    @buffer
   end
 
+  # This gets called by +initialize+ which is implemented in C.
   # If key and iv are passed to new(), they will be passed through
-  # here for processing
+  # here for processing.
   def after_init(key=nil,iv=nil) #:nodoc:
+    @padding = false
+    @buffer  = ""
+
     self.key = key if key
     self.iv  = iv  if iv
   end
@@ -261,10 +349,11 @@ class Mcrypt
   end
 
   def validate_iv(iv)
-    unless has_iv?
+    if iv.nil? && !has_iv?
+      nil
+    elsif !has_iv?
       raise(InvalidIVError, "Mode #{mode} does not use an IV.")
-    end
-    if iv.length == iv_size
+    elsif iv.length == iv_size
       iv
     else
       raise(InvalidIVError, "IV length #{iv.length} is not supported by #{mode}.")

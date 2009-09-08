@@ -45,45 +45,7 @@ static VALUE enumerate_key_sizes(int *sizes, int num_of_sizes, int max_size);
 static VALUE cMcrypt;
 static VALUE cInvalidAlgorithmOrModeError;
 static VALUE cMcryptRuntimeError;
-static VALUE mc_alloc(VALUE klass);
-static void  mc_free(void *p);
 
-/* instance methods */
-static VALUE mc_initialize(int argc, VALUE *argv, VALUE self);
-static VALUE mc_generic_init(VALUE self);
-static VALUE mc_generic_deinit(VALUE self);
-static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext);
-static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext);
-static VALUE mc_key_size(VALUE self);
-static VALUE mc_block_size(VALUE self);
-static VALUE mc_iv_size(VALUE self);
-static VALUE mc_is_block_algorithm(VALUE self);
-static VALUE mc_is_block_mode(VALUE self);
-static VALUE mc_is_block_algorithm_mode(VALUE self);
-static VALUE mc_algorithm_version(VALUE self);
-static VALUE mc_mode_version(VALUE self);
-
-/* class methods */
-static VALUE mck_algorithms(VALUE self);
-static VALUE mck_modes(VALUE self);
-static VALUE mck_is_block_algorithm(VALUE self, VALUE algo);
-static VALUE mck_key_size(VALUE self, VALUE algo);
-static VALUE mck_block_size(VALUE self, VALUE algo);
-static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode);
-static VALUE mck_is_block_mode(VALUE self, VALUE mode);
-static VALUE mck_algorithm_version(VALUE self, VALUE algo);
-static VALUE mck_mode_version(VALUE self, VALUE mode);
-
-
-/*= IMPLEMENTATION =*/
-
-static VALUE mc_alloc(VALUE klass)
-{
-  MCRYPT *box;
-  box = malloc(sizeof(MCRYPT));
-  *box = 0;   /* will populate in mc_initialize */
-  return Data_Wrap_Struct(klass, 0, mc_free, box);
-}
 
 static void mc_free(void *p)
 {
@@ -95,6 +57,22 @@ static void mc_free(void *p)
   free(box);
 }
 
+static VALUE mc_alloc(VALUE klass)
+{
+  MCRYPT *box;
+  box = malloc(sizeof(MCRYPT));
+  *box = 0;   /* will populate in mc_initialize */
+  return Data_Wrap_Struct(klass, 0, mc_free, box);
+}
+
+
+/*
+ * call-seq:
+ *  Mcrypt.new(algorithm,mode,key=nil,iv=nil)
+ *
+ * Creates and initializes a new Mcrypt object with the specified +algorithm+ and +mode+.
+ * +key+ and +iv+ will also be initialized if they are present.
+ */
 static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
 {
     VALUE algo, mode, key, iv;
@@ -139,8 +117,8 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@algorithm", algo);
     rb_iv_set(self, "@mode", mode);
 
-    if (!NIL_P(key))
-        rb_funcall(self, rb_intern("after_init"), 2, key, iv);
+    /* post-initialization stuff that's easier done in ruby */
+    rb_funcall(self, rb_intern("after_init"), 2, key, iv);
 
     return self;
 }
