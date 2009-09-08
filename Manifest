@@ -3,6 +3,9 @@ Rakefile
 ext/extconf.rb
 ext/mcrypt.rb
 ext/mcrypt_wrapper.c
+lib/mcrypt.rb
 setup.rb
 test/helper.rb
 test/test_all.rb
+test/test_basics.rb
+test/test_reciprocity.rb
