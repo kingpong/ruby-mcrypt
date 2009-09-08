@@ -112,7 +112,8 @@ class Mcrypt
   # The IV currently in use (raw binary).
   attr_reader :iv
 
-  # One of +false+ (default), <tt>:pkcs</tt> or <tt>:zeros</tt>.  See <tt>padding=</tt> for details.
+  # One of +false+ (default), <tt>:pkcs</tt> or <tt>:zeros</tt>.
+  # See <tt>padding=</tt>.
   attr_reader :padding
 
   # Set the cryptographic key to be used. This is the <em>final raw
@@ -332,7 +333,7 @@ class Mcrypt
   # This gets called by +initialize+ which is implemented in C.
   # If key and iv are passed to new(), they will be passed through
   # here for processing.
-  def after_init(key=nil,iv=nil) #:nodoc:
+  def after_init(key=nil,iv=nil)
     @padding = false
     @buffer  = ""
 
@@ -340,6 +341,8 @@ class Mcrypt
     self.iv  = iv  if iv
   end
 
+  # Validates that the key is of the proper size.  Raises exception if
+  # invalid.
   def validate_key(key)
     if key.length == key_size || key_sizes.include?(key.length)
       key
@@ -348,6 +351,8 @@ class Mcrypt
     end
   end
 
+  # Validates that the IV is of the proper size and that the IV presence is
+  # supported by the encryption mode.  Raises exception if invalid.
   def validate_iv(iv)
     if iv.nil? && !has_iv?
       nil
@@ -360,6 +365,7 @@ class Mcrypt
     end
   end
 
+  # Validates both key and IV.  Raises exception if invalid.
   def validate!
     validate_key(@key)
     if has_iv?
@@ -370,6 +376,7 @@ class Mcrypt
     end
   end
 
+  # Opens a encryption thread descriptor if it is not already opened.
   def open_td
     return if @opened
     validate!
@@ -377,12 +384,14 @@ class Mcrypt
     @opened = true
   end
 
+  # Closes and deinitializes the encryption thread descriptor if it is open.
   def close_td
     return unless @opened
     generic_deinit
     @opened = false
   end
 
+  # Returns the padding string to apply to the plaintext buffer.
   def padding_str
     if buffer.length > block_size
       raise(RuntimeError, "internal error: buffer is larger than block size")
@@ -403,6 +412,7 @@ class Mcrypt
     pad_char * pad_size
   end
 
+  # Strips and validates pkcs padding.
   def unpad_pkcs(block)
     chars = block.unpack('C*')
     padding_bytes = mod = chars.last
