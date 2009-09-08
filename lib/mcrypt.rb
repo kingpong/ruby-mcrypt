@@ -40,9 +40,9 @@ class Mcrypt
 
     # Returns a hash with the following keys:
     #
-    # +:block_algorithm+: true if the algorithm is a block algorithm
+    # +:block_algorithm+: true if the algorithm operates in blocks (mutually exclusive with stream_algorithm)
     #
-    # +:stream_algorithm+: true if the algorithm is a stream algorithm (i.e. !block_algorithm)
+    # +:stream_algorithm+: true if the algorithm is a stream algorithm (mutually exclusive with block_algorithm)
     #
     # +:block_size+: the size of blocks the algorithm works with (in bytes)
     #
@@ -67,13 +67,13 @@ class Mcrypt
 
     # Returns a hash with the following keys:
     #
-    # +:block_mode+: true if the mode is a block mode
+    # +:block_mode+: true if the mode operates in blocks (mutually exclusive with stream_mode)
     #
-    # +:stream_mode+: true if the mode is a stream mode
+    # +:stream_mode+: true if the mode operates in bytes (mutually exclusive with block_mode)
     #
-    # +:block_algorithm_mode+: true if the mode is for use with block algorithms
+    # +:block_algorithm_mode+: true if the mode is for use with block algorithms (mutually exclusive with stream_algorithm_mode)
     #
-    # +:stream_algorithm_mode+: true if the mode is for use with stream algorithms
+    # +:stream_algorithm_mode+: true if the mode is for use with stream algorithms (mutually exclusive with block_algorithm_mode)
     #
     # +:mode_version+: an integer identifying the version of the mode implementation
     #
@@ -215,9 +215,10 @@ class Mcrypt
     # no buffering/padding in stream mode
     return '' if stream_mode?
 
-    # There should always be exactly one block in the buffer at this
-    # point, because the input should be on block boundaries.
-    if buffer.length != block_size
+    # There should always be exactly zero or one block(s) in the buffer
+    # at this point, because the input should be on block boundaries,
+    # and we've consumed all available blocks but one in decrypt_more().
+    if ! [0,block_size].include?(buffer.length)
       raise(RuntimeError, "input is not a multiple of the block size (#{block_size})")
     end
 
@@ -272,7 +273,12 @@ class Mcrypt
 
   def validate!
     validate_key(@key)
-    validate_iv(@iv) if has_iv?
+    if has_iv?
+      if @iv.nil?
+        raise(InvalidIVError, "#{algorithm}/#{mode} requires an IV but none was provided.")
+      end
+      validate_iv(@iv)
+    end
   end
 
   def open_td
@@ -301,7 +307,7 @@ class Mcrypt
       pad_char = "%c" % pad_size
     when :zeros
       pad_char = "%c" % 0
-    when false
+    else
       raise(RuntimeError, "Input is not an even multiple of the block size " +
             "(#{block_size}), but no padding has been specified.")
     end
