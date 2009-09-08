@@ -44,11 +44,16 @@ static VALUE enumerate_key_sizes(int *sizes, int num_of_sizes, int max_size);
 /* globals */
 static VALUE cMcrypt;
 static VALUE cInvalidAlgorithmOrModeError;
+static VALUE cMcryptRuntimeError;
 static VALUE mc_alloc(VALUE klass);
 static void  mc_free(void *p);
 
 /* instance methods */
 static VALUE mc_initialize(int argc, VALUE *argv, VALUE self);
+static VALUE mc_generic_init(VALUE self);
+static VALUE mc_generic_deinit(VALUE self);
+static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext);
+static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext);
 static VALUE mc_key_size(VALUE self);
 static VALUE mc_block_size(VALUE self);
 static VALUE mc_iv_size(VALUE self);
@@ -138,6 +143,73 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
         rb_funcall(self, rb_intern("after_init"), 2, key, iv);
 
     return self;
+}
+
+static VALUE mc_generic_init(VALUE self)
+{
+    /* ruby has already validated @key and @iv */
+    VALUE key, iv;
+    int rv;
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+
+    key = rb_iv_get(self, "@key");
+    iv  = rb_iv_get(self, "@iv");
+
+    rv = mcrypt_generic_init(*box,
+                             (void *)RSTRING(key)->ptr,
+                             RSTRING(key)->len,
+                             RSTR_N(iv));
+    if (rv < 0) {
+        const char *err = mcrypt_strerror(rv);
+        rb_raise(cMcryptRuntimeError, "Could not initialize mcrypt: %s", err);
+    }
+
+    return Qnil;
+}
+
+static VALUE mc_generic_deinit(VALUE self)
+{
+    MCRYPT *box;
+    Data_Get_Struct(self, MCRYPT, box);
+    mcrypt_generic_deinit(*box);
+    return Qnil;
+}
+
+static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext)
+{
+    /* plaintext is encrypted in-place */
+    MCRYPT *box;
+    VALUE ciphertext;
+    int rv;
+
+    Data_Get_Struct(self, MCRYPT, box);
+
+    /* rb_str_dup doesn't actually copy the buffer, hence rb_str_new */
+    ciphertext = rb_str_new(RSTRING(plaintext)->ptr, RSTRING(plaintext)->len);
+
+    rv = mcrypt_generic(*box, (void *)RSTRING(ciphertext)->ptr, RSTRING(ciphertext)->len);
+    if (rv != 0)
+        rb_raise(cMcryptRuntimeError, "internal error: mcrypt_generic returned %d", rv);
+    return ciphertext;
+}
+
+static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext)
+{
+    /* ciphertext is decrypted in-place */
+    MCRYPT *box;
+    VALUE plaintext;
+    int rv;
+
+    Data_Get_Struct(self, MCRYPT, box);
+
+    /* rb_str_dup doesn't actually copy the buffer, hence rb_str_new */
+    plaintext = rb_str_new(RSTRING(ciphertext)->ptr, RSTRING(ciphertext)->len);
+
+    rv = mdecrypt_generic(*box, (void *)RSTRING(plaintext)->ptr, RSTRING(plaintext)->len);
+    if (rv != 0)
+        rb_raise(cMcryptRuntimeError, "internal error: mdecrypt_generic returned %d", rv);
+    return plaintext;
 }
 
 static VALUE mc_key_size(VALUE self)
@@ -308,11 +380,16 @@ void Init_mcrypt()
     /*= GLOBALS =*/
     cMcrypt = rb_define_class("Mcrypt", rb_cObject);
     cInvalidAlgorithmOrModeError = rb_define_class_under(cMcrypt, "InvalidAlgorithmOrModeError", rb_eArgError);
+    cMcryptRuntimeError = rb_define_class_under(cMcrypt, "RuntimeError", rb_eRuntimeError);
     rb_define_const(cMcrypt, "LIBMCRYPT_VERSION", rb_str_new2(LIBMCRYPT_VERSION));
     rb_define_alloc_func(cMcrypt, mc_alloc);
 
     /*= INSTANCE METHODS =*/
     rb_define_method(cMcrypt, "initialize", mc_initialize, -1);
+    rb_define_method(cMcrypt, "generic_init", mc_generic_init, 0);
+    rb_define_method(cMcrypt, "generic_deinit", mc_generic_deinit, 0);
+    rb_define_method(cMcrypt, "encrypt_generic", mc_encrypt_generic, 1);
+    rb_define_method(cMcrypt, "decrypt_generic", mc_decrypt_generic, 1);
     rb_define_method(cMcrypt, "key_size", mc_key_size, 0);
     rb_define_method(cMcrypt, "block_size", mc_block_size, 0);
     rb_define_method(cMcrypt, "iv_size", mc_iv_size, 0);
@@ -337,18 +414,13 @@ void Init_mcrypt()
     rb_define_singleton_method(cMcrypt, "mode_version", mck_mode_version, 1);
 
     /* TODO:
-       instance methods:
-           init / deinit
-           encrypt
-           decrypt
-
+       Instance methods:
            (for copying)
            mcrypt_enc_get_state
            mcrypt_enc_set_state
-
        Maybe:
            self-tests
-       */
+    */
 }
 
 

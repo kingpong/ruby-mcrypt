@@ -10,3 +10,4 @@ begin
   end
 end
 
+require 'mcrypt'
