@@ -1,0 +1,55 @@
+= Mcrypt - libmcrypt bindings for Ruby
+
+Mcrypt provides Ruby-language bindings for libmcrypt(3), a
+symmetric cryptography library. {Libmcrypt}[http://mcrypt.sourceforge.net/]
+supports lots of different ciphers and encryption modes.
+
+== You will need
+
+* A working Ruby installation
+* A working libmcrypt installation (2.5.x or 2.6.x, tested with 2.5.8)
+* A sane build environment
+
+== Installation
+
+  gem install kingpong-ruby-mcrypt --source http://gems.github.com
+
+  # in your code:
+  require 'rubygems'
+  require 'mcrypt'
+
+  # or in Rails' environment.rb:
+  gem "kingpong-ruby-mcrypt", :lib => "mcrypt"
+
+== Known Issues
+
+* Test coverage is lacking.
+
+If you find any bugs, please let the author know.
+
+== Author
+
+* Philip Garrett <philip at pastemagazine.com>
+
+== Copyright and License
+
+Copyright (c) 2009 Philip Garrett.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

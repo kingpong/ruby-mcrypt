@@ -11,7 +11,6 @@ Echoe.new(project, version) do |p|
   p.url = "http://github.com/kingpong/ruby-mcrypt"
   p.author = "Philip Garrett"
   p.email = "philip@pastemagazine.com"
-  p.ignore_pattern = ["tmp/*","script/*","InstalledFiles"]
+  p.ignore_pattern = ["tmp/*", "script/*", "InstalledFiles", "test/generate/generate_testcases" ]
   p.development_dependencies = []
-  p.rdoc_pattern = ["lib/mcrypt.rb", "ext/mcrypt_wrapper.c"]
 end

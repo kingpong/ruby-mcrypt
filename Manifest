@@ -1,11 +1,15 @@
 Manifest
+README.rdoc
 Rakefile
 ext/extconf.rb
-ext/mcrypt.rb
 ext/mcrypt_wrapper.c
 lib/mcrypt.rb
+mcrypt.gemspec
 setup.rb
+test/generate/Makefile
+test/generate/generate_testcases.c
 test/helper.rb
 test/test_all.rb
 test/test_basics.rb
+test/test_brute.rb
 test/test_reciprocity.rb
