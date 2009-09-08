@@ -68,7 +68,7 @@ static VALUE mc_alloc(VALUE klass)
 
 /*
  * call-seq:
- *  Mcrypt.new(algorithm,mode,key=nil,iv=nil)
+ *  Mcrypt.new(algorithm,mode,key=nil,iv=nil) -> new_mcrypt
  *
  * Creates and initializes a new Mcrypt object with the specified +algorithm+ and +mode+.
  * +key+ and +iv+ will also be initialized if they are present.
@@ -190,6 +190,12 @@ static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext)
     return plaintext;
 }
 
+/*
+ * call-seq:
+ *  key_size -> Fixnum
+ *
+ * Returns the maximum key size for the algorithm in use.
+ */
 static VALUE mc_key_size(VALUE self)
 {
     MCRYPT *box;
@@ -197,6 +203,13 @@ static VALUE mc_key_size(VALUE self)
     return INT2FIX(mcrypt_enc_get_key_size(*box));
 }
 
+/*
+ * call-seq:
+ *  block_size -> Fixnum
+ *
+ * Returns the block size (in bytes) for the algorithm in use. If it
+ * is a stream algorithm, this will be 1.
+ */
 static VALUE mc_block_size(VALUE self)
 {
     MCRYPT *box;
@@ -204,13 +217,29 @@ static VALUE mc_block_size(VALUE self)
     return INT2FIX(mcrypt_enc_get_block_size(*box));
 }
 
+/*
+ * call-seq:
+ *  iv_size -> Fixnum or nil
+ *
+ * Returns the IV size (in bytes) for the mode in use. If the mode does
+ * not use an IV, returns nil.
+ */
 static VALUE mc_iv_size(VALUE self)
 {
     MCRYPT *box;
     Data_Get_Struct(self, MCRYPT, box);
-    return INT2FIX(mcrypt_enc_get_iv_size(*box));
+    if (mcrypt_enc_mode_has_iv(*box))
+      return INT2FIX(mcrypt_enc_get_iv_size(*box));
+    else
+      return Qnil;
 }
 
+/*
+ * call-seq:
+ *  block_algorithm? -> true or false
+ *
+ * True if the algorithm in use operates in blocks.
+ */
 static VALUE mc_is_block_algorithm(VALUE self)
 {
     MCRYPT *box;
@@ -218,6 +247,12 @@ static VALUE mc_is_block_algorithm(VALUE self)
     return TO_RB_BOOL(mcrypt_enc_is_block_algorithm(*box));
 }
 
+/*
+ * call-seq:
+ *  block_mode? -> true or false
+ *
+ * True if the encryption mode in use operates in blocks.
+ */
 static VALUE mc_is_block_mode(VALUE self)
 {
     MCRYPT *box;
@@ -225,6 +260,12 @@ static VALUE mc_is_block_mode(VALUE self)
     return TO_RB_BOOL(mcrypt_enc_is_block_mode(*box));
 }
 
+/*
+ * call-seq:
+ *  block_algorithm_mode? -> true or false
+ *
+ * True if the encryption mode is for use with block algorithms.
+ */
 static VALUE mc_is_block_algorithm_mode(VALUE self)
 {
     MCRYPT *box;
@@ -232,6 +273,12 @@ static VALUE mc_is_block_algorithm_mode(VALUE self)
     return TO_RB_BOOL(mcrypt_enc_is_block_algorithm_mode(*box));
 }
 
+/*
+ * call-seq:
+ *  has_iv? -> true or false
+ *
+ * True if the the encryption mode uses an IV.
+ */
 static VALUE mc_mode_has_iv(VALUE self)
 {
     MCRYPT *box;
@@ -239,6 +286,12 @@ static VALUE mc_mode_has_iv(VALUE self)
     return TO_RB_BOOL(mcrypt_enc_mode_has_iv(*box));
 }
 
+/*
+ * call-seq:
+ *  key_sizes -> Array
+ *
+ * An array of the key sizes supported by the algorithm.
+ */
 static VALUE mc_key_sizes(VALUE self)
 {
     VALUE rv;
@@ -250,6 +303,12 @@ static VALUE mc_key_sizes(VALUE self)
     return enumerate_key_sizes(sizes, num_of_sizes, mcrypt_enc_get_key_size(*box));
 }
 
+/*
+ * call-seq:
+ *  algorithm_version -> Fixnum
+ *
+ * The numeric version of the algorithm implementation.
+ */
 static VALUE mc_algorithm_version(VALUE self)
 {
     int version;
@@ -258,6 +317,12 @@ static VALUE mc_algorithm_version(VALUE self)
     return INT2FIX(version);
 }
 
+/*
+ * call-seq:
+ *  mode_version -> Fixnum
+ *
+ * The numeric version of the encryption mode implementation.
+ */
 static VALUE mc_mode_version(VALUE self)
 {
     int version;
@@ -266,6 +331,12 @@ static VALUE mc_mode_version(VALUE self)
     return INT2FIX(version);
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.algorithms -> Array
+ *
+ * Returns an array of all the supported algorithm names.
+ */
 static VALUE mck_algorithms(VALUE self)
 {
     VALUE rv;
@@ -282,6 +353,12 @@ static VALUE mck_algorithms(VALUE self)
     return rv;
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.modes -> Array
+ *
+ * Returns an array of all the supported mode names.
+ */
 static VALUE mck_modes(VALUE self)
 {
     VALUE rv;
@@ -298,24 +375,48 @@ static VALUE mck_modes(VALUE self)
     return rv;
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.block_algorithm?(algorithm) -> true or false
+ *
+ * Returns true if the specified algorithm operates in blocks.
+ */
 static VALUE mck_is_block_algorithm(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
     return TO_RB_BOOL(mcrypt_module_is_block_algorithm(RSTRING(algo)->ptr,NULL));
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.key_size(algorithm) -> Fixnum
+ *
+ * Returns the maximum key size of the specified algorithm.
+ */
 static VALUE mck_key_size(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
     return INT2FIX(mcrypt_module_get_algo_key_size(RSTRING(algo)->ptr,NULL));
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.block_size(algorithm) -> Fixnum
+ *
+ * Returns the block size of the specified algorithm.
+ */
 static VALUE mck_block_size(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
     return INT2FIX(mcrypt_module_get_algo_block_size(RSTRING(algo)->ptr,NULL));
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.key_sizes(algorithm) -> Array
+ *
+ * Returns the key sizes supported by the specified algorithm.
+ */
 static VALUE mck_key_sizes(VALUE self, VALUE algo)
 {
     int *sizes, num_of_sizes, max;
@@ -325,24 +426,48 @@ static VALUE mck_key_sizes(VALUE self, VALUE algo)
     return enumerate_key_sizes(sizes, num_of_sizes, max);
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.block_algorithm_mode?(mode) -> true or false
+ *
+ * Returns true if the specified mode is for use with block algorithms.
+ */
 static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode)
 {
     mode = to_s(mode);
     return TO_RB_BOOL(mcrypt_module_is_block_algorithm_mode(RSTRING(mode)->ptr,NULL));
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.block_mode?(mode) -> true or false
+ *
+ * Returns true if the specified mode operates in blocks.
+ */
 static VALUE mck_is_block_mode(VALUE self, VALUE mode)
 {
     mode = to_s(mode);
     return TO_RB_BOOL(mcrypt_module_is_block_mode(RSTRING(mode)->ptr,NULL));
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.algorithm_version(algorithm) -> Fixnum
+ *
+ * Returns the implementation version number of the specified algorithm.
+ */
 static VALUE mck_algorithm_version(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
     return INT2FIX(mcrypt_module_algorithm_version(RSTRING(algo)->ptr, NULL));
 }
 
+/*
+ * call-seq:
+ *  Mcrypt.mode_version(mode) -> Fixnum
+ *
+ * Returns the implementation version number of the specified mode.
+ */
 static VALUE mck_mode_version(VALUE self, VALUE mode)
 {
     mode = to_s(mode);

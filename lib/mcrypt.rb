@@ -38,6 +38,9 @@ class Mcrypt
 
   class << self
 
+    # :call-seq:
+    #  Mcrypt.algorithm_info(algorithm_name) -> Hash
+    #
     # Provides information about the specified algorithm.
     # Returns a hash with the following keys:
     # [:block_algorithm]  true if the algorithm operates in blocks (mutually exclusive with stream_algorithm)
@@ -57,12 +60,18 @@ class Mcrypt
       }
     end
 
+    # :call-seq:
+    #  Mcrypt.stream_algorithm?(algorithm_name) -> true or false
+    #
     # Returns true if the algorithm specified operates in bytes.
     # This is mutually exclusive with <tt>block_algorithm?</tt>.
     def stream_algorithm?(algorithm_name)
       ! block_algorithm?(algorithm_name)
     end
 
+    # :call-seq:
+    #  Mcrypt.mode_info(mode_name) -> Hash
+    #
     # Provides information about the specified operation mode.
     # Returns a hash with the following keys:
     # [:block_mode]            true if the mode operates in blocks (mutually exclusive with stream_mode)
@@ -81,18 +90,27 @@ class Mcrypt
       }
     end
 
+    # :call-seq:
+    #  Mcrypt.stream_mode?(mode_name) -> true or false
+    #
     # Returns true if the mode specified operates in bytes.
     # This is mutually exclusive with <tt>block_mode?</tt>.
     def stream_mode?(mode_name)
       ! block_mode?(mode_name)
     end
 
+    # :call-seq:
+    #  Mcrypt.stream_algorithm_mode?(mode_name) -> true or false
+    #
     # Returns true if the mode specified is for use with stream algorithms (e.g. ARCFOUR)
     # This is mutually exclusive with <tt>block_algorithm_mode?</tt>.
     def stream_algorithm_mode?(mode_name)
       ! block_algorithm_mode?(mode_name)
     end
 
+    # :call-seq:
+    #  Mcrypt.canonicalize_algorithm(algorithm) -> String
+    #
     # Converts :rijndael_256 to "rijndael-256".
     # No need to call manually -- it's called for you when needed.
     def canonicalize_algorithm(algo) #:nodoc:
@@ -100,21 +118,48 @@ class Mcrypt
     end
   end
 
+  # attr_reader screwed up rdoc.
+
+  # :call-seq:
+  #  algorithm -> String
+  #
   # The canonical name of the algorithm currently in use.
-  attr_reader :algorithm
+  def algorithm
+    @algorithm
+  end
 
+  # :call-seq:
+  #  mode -> String
+  #
   # The name of the mode currently in use.
-  attr_reader :mode
+  def mode
+    @mode
+  end
 
+  # :call-seq:
+  #  key -> String
+  #
   # The key currently in use (raw binary).
-  attr_reader :key
+  def key
+    @key
+  end
 
+  # :call-seq:
+  #  iv -> String
+  #
   # The IV currently in use (raw binary).
-  attr_reader :iv
+  def iv
+    @iv
+  end
 
+  # :call-seq:
+  #  padding -> String
+  #
   # One of +false+ (default), <tt>:pkcs</tt> or <tt>:zeros</tt>.
   # See <tt>padding=</tt>.
-  attr_reader :padding
+  def padding
+    @padding
+  end
 
   # Set the cryptographic key to be used. This is the <em>final raw
   # binary representation</em> of the key (i.e. not base64 or hex-encoded).
