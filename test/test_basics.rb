@@ -33,6 +33,30 @@ class McryptBasicsTest < Test::Unit::TestCase
     assert_equal "cfb", Mcrypt.new(:rijndael_256, :cfb).mode
     assert_equal "cfb", Mcrypt.new(:rijndael_256, "cfb").mode
   end
+
+  def test_padding_initialization
+    assert_equal :pkcs, Mcrypt.new(:twofish, :cfb, nil, nil, true).padding
+    assert_equal :pkcs, Mcrypt.new(:twofish, :cfb, nil, nil, :pkcs).padding
+    assert_equal :pkcs, Mcrypt.new(:twofish, :cfb, nil, nil, "pkcs").padding
+    assert_equal :pkcs, Mcrypt.new(:twofish, :cfb, nil, nil, "pkcs7").padding
+    assert_equal :pkcs, Mcrypt.new(:twofish, :cfb, nil, nil, "pkcs5").padding
+
+    assert_equal :zeros, Mcrypt.new(:twofish, :cfb, nil, nil, :zeros).padding
+    assert_equal :zeros, Mcrypt.new(:twofish, :cfb, nil, nil, :zeroes).padding
+
+    assert_equal false, Mcrypt.new(:twofish, :cfb, nil, nil, :none).padding
+    assert_equal false, Mcrypt.new(:twofish, :cfb, nil, nil, "none").padding
+    assert_equal false, Mcrypt.new(:twofish, :cfb, nil, nil, false).padding
+    assert_equal false, Mcrypt.new(:twofish, :cfb, nil, nil, nil).padding
+    assert_equal false, Mcrypt.new(:twofish, :cfb, nil, nil, "").padding
+  end
+  
+  def test_key_size
+    assert_equal 24, Mcrypt.new(:tripledes, :cbc).key_size
+  end
+
+  def test_block_size
+  end
   
   def test_key_size
     assert_equal 24, Mcrypt.new(:tripledes, :cbc).key_size

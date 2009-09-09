@@ -2,56 +2,59 @@
 
 require File.join(File.dirname(__FILE__),"helper.rb")
 
-class McryptBruteForceTest < Test::Unit::TestCase
+if ENV["MCRYPT_TEST_BRUTE"]
+  class McryptBruteForceTest < Test::Unit::TestCase
 
-  def test_known_ciphertexts
-    open_test_cases
-    while tc = next_test_case
-      mc = Mcrypt.new(tc[:algo],tc[:mode],tc[:key])
-      if tc[:iv] && mc.has_iv?
-        mc.iv = tc[:iv]
+    def test_known_ciphertexts
+      open_test_cases
+      while tc = next_test_case
+        mc = Mcrypt.new(tc[:algo],tc[:mode],tc[:key])
+        if tc[:iv] && mc.has_iv?
+          mc.iv = tc[:iv]
+        end
+        assert_equal tc[:ct], mc.encrypt(tc[:pt]),
+          "encrypt of #{tc[:algo]}/#{tc[:mode]}/#{tc[:padding]} line #{tc[:line]}"
+        assert_equal tc[:pt], mc.decrypt(tc[:ct]),
+          "decrypt of #{tc[:algo]}/#{tc[:mode]}/#{tc[:padding]} line #{tc[:line]}"
       end
-      assert_equal tc[:ct], mc.encrypt(tc[:pt]),
-        "encrypt of #{tc[:algo]}/#{tc[:mode]}/#{tc[:padding]} line #{tc[:line]}"
-      assert_equal tc[:pt], mc.decrypt(tc[:ct]),
-        "decrypt of #{tc[:algo]}/#{tc[:mode]}/#{tc[:padding]} line #{tc[:line]}"
     end
-  end
 
-  private
+    private
 
-  def open_test_cases
-    @f = File.open(__FILE__,"r")
-    @line = 0
-    while line = @f.gets.chomp
+    def open_test_cases
+      @f = File.open(__FILE__,"r")
+      @line = 0
+      while line = @f.gets.chomp
+        @line += 1
+        break if line == "__END__"
+      end
+    end
+
+    def next_test_case
+      line = @f.gets || return
       @line += 1
-      break if line == "__END__"
+      line.chomp!
+      test_case = { :line => @line }
+      line.split(/,/).each do |pair|
+        name, val = pair.split(/=/)
+        case name
+        when "algo", "mode"
+          test_case[name.to_sym] = val
+        else
+          test_case[name.to_sym] = decode_bin(val)
+        end
+      end
+      test_case
     end
-  end
 
-  def next_test_case
-    line = @f.gets || return
-    @line += 1
-    line.chomp!
-    test_case = { :line => @line }
-    line.split(/,/).each do |pair|
-      name, val = pair.split(/=/)
-      case name
-      when "algo", "mode"
-        test_case[name.to_sym] = val
+    def decode_bin(hexstr)
+      if hexstr.nil? || hexstr == ""
+        ""
       else
-        test_case[name.to_sym] = decode_bin(val)
+        hexstr.split(/ /).inject('') { |memo,byte| memo << byte.hex }
       end
     end
-    test_case
-  end
 
-  def decode_bin(hexstr)
-    if hexstr.nil? || hexstr == ""
-      ""
-    else
-      hexstr.split(/ /).inject('') { |memo,byte| memo << byte.hex }
-    end
   end
 
 end

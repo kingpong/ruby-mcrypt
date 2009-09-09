@@ -68,19 +68,19 @@ static VALUE mc_alloc(VALUE klass)
 
 /*
  * call-seq:
- *  Mcrypt.new(algorithm,mode,key=nil,iv=nil) -> new_mcrypt
+ *  Mcrypt.new(algorithm,mode,key=nil,iv=nil,padding=nil) -> new_mcrypt
  *
  * Creates and initializes a new Mcrypt object with the specified +algorithm+ and +mode+.
- * +key+ and +iv+ will also be initialized if they are present.
+ * +key+, +iv+ and +padding+ will also be initialized if they are present.
  */
 static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
 {
-    VALUE algo, mode, key, iv;
+    VALUE algo, mode, key, iv, padding;
     char *s_algo, *s_mode;
     MCRYPT *box;
     int rv;
 
-    rb_scan_args(argc, argv, "22", &algo, &mode, &key, &iv);
+    rb_scan_args(argc, argv, "23", &algo, &mode, &key, &iv, &padding);
 
     Data_Get_Struct(self, MCRYPT, box);
 
@@ -118,7 +118,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     rb_iv_set(self, "@mode", mode);
 
     /* post-initialization stuff that's easier done in ruby */
-    rb_funcall(self, rb_intern("after_init"), 2, key, iv);
+    rb_funcall(self, rb_intern("after_init"), 3, key, iv, padding);
 
     return self;
 }

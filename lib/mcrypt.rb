@@ -24,12 +24,6 @@
 #
 require 'mcrypt.so'
 
-# maybe later:
-# td = Mcrypt.new(:rijndael_256, :cfb, key, iv, :padding => true)
-# td.open(File.open("foo")) do |stream|
-#   print stream.read
-# end
-
 class Mcrypt
 
   class InvalidKeyError < ArgumentError; end
@@ -211,7 +205,7 @@ class Mcrypt
   #   disambiguate an incomplete message from one that happens to fall on
   #   block boundaries.
   #
-  # ["zeros"]
+  # ["zeros","zeroes"]
   #   Pads the plaintext with NUL characters. This works fine with C-
   #   strings. Don't use it with anything that might have other embedded
   #   nulls.
@@ -226,9 +220,9 @@ class Mcrypt
   # N.B. This is not a feature of libmcrypt but of this Ruby module.
   def padding=(padding_type)
     @padding = case padding_type.to_s
-      when "true", /\Apkcs/
+      when "true", /\Apkcs[57]?\Z/
         @padding = :pkcs
-      when /\Azero/
+      when /\Azeroe?s\Z/
         @padding = :zeros
       when "false", "none", ""
         @padding = false
@@ -378,12 +372,13 @@ class Mcrypt
   # This gets called by +initialize+ which is implemented in C.
   # If key and iv are passed to new(), they will be passed through
   # here for processing.
-  def after_init(key=nil,iv=nil)
+  def after_init(key=nil,iv=nil,padding=nil)
     @padding = false
     @buffer  = ""
 
     self.key = key if key
     self.iv  = iv  if iv
+    self.padding = padding if padding
   end
 
   # Validates that the key is of the proper size.  Raises exception if

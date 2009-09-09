@@ -21,11 +21,35 @@ supports lots of different ciphers and encryption modes.
   # or in Rails' environment.rb:
   gem "kingpong-ruby-mcrypt", :lib => "mcrypt"
 
+== Usage
+
+  crypto = Mcrypt.new(:twofish, :cbc, MY_KEY, MY_IV, :pkcs)
+
+  # encryption and decryption in one step
+  ciphertext = crypto.encrypt(plaintext)
+  plaintext  = crypto.decrypt(ciphertext)
+
+  # encrypt in smaller steps
+  while chunk = $stdin.read(4096)
+    $stdout << crypto.encrypt_more(chunk)
+  end
+  $stdout << crypto.encrypt_finish
+
+  # or decrypt:
+  while chunk = $stdin.read(4096)
+    $stdout << crypto.decrypt_more(chunk)
+  end
+  $stdout << crypto.decrypt_finish
+
 == Known Issues
 
 * Test coverage is lacking.
 
 If you find any bugs, please let the author know.
+
+== Wish List
+
+* IO-like behavior, e.g. crypto.open($stdin) { |stream| ... }
 
 == Author
 
