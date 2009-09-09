@@ -5,3 +5,4 @@
 *.swp
 Makefile
 mcrypt.rb
+*.so
