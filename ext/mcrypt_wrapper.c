@@ -123,6 +123,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     return self;
 }
 
+/* :nodoc: */
 static VALUE mc_generic_init(VALUE self)
 {
     /* ruby has already validated @key and @iv */
@@ -146,6 +147,7 @@ static VALUE mc_generic_init(VALUE self)
     return Qnil;
 }
 
+/* :nodoc: */
 static VALUE mc_generic_deinit(VALUE self)
 {
     MCRYPT *box;
@@ -154,6 +156,7 @@ static VALUE mc_generic_deinit(VALUE self)
     return Qnil;
 }
 
+/* :nodoc: */
 static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext)
 {
     /* plaintext is encrypted in-place */
@@ -172,6 +175,7 @@ static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext)
     return ciphertext;
 }
 
+/* :nodoc: */
 static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext)
 {
     /* ciphertext is decrypted in-place */
