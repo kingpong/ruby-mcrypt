@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.email = %q{philip@pastemagazine.com}
   s.extensions = ["ext/extconf.rb"]
   s.extra_rdoc_files = ["README.rdoc", "ext/extconf.rb", "ext/mcrypt_wrapper.c", "lib/mcrypt.rb"]
-  s.files = ["Manifest", "README.rdoc", "Rakefile", "ext/extconf.rb", "ext/mcrypt_wrapper.c", "lib/mcrypt.rb", "mcrypt.gemspec", "test/generate/Makefile", "test/generate/generate_testcases.c", "test/helper.rb", "test/test_all.rb", "test/test_basics.rb", "test/test_brute.rb", "test/test_reciprocity.rb", "ruby-mcrypt.gemspec"]
+  s.files = ["Manifest", "README.rdoc", "Rakefile", "ext/extconf.rb", "ext/mcrypt_wrapper.c", "lib/mcrypt.rb", "ruby-mcrypt.gemspec", "test/generate/Makefile", "test/generate/generate_testcases.c", "test/helper.rb", "test/test_all.rb", "test/test_basics.rb", "test/test_brute.rb", "test/test_reciprocity.rb"]
   s.homepage = %q{http://github.com/kingpong/ruby-mcrypt}
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Ruby-mcrypt", "--main", "README.rdoc"]
   s.require_paths = ["lib", "ext"]
