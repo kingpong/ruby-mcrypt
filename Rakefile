@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-project = "mcrypt"
+project = "ruby-mcrypt"
 version = "0.0.1"
 
 Echoe.new(project, version) do |p|

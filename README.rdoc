@@ -12,13 +12,17 @@ supports lots of different ciphers and encryption modes.
 
 == Installation
 
-  gem install kingpong-ruby-mcrypt --source http://gems.github.com
+Install the gem:
+  gem install kingpong-ruby-mcrypt --source http://gems.github.com --test
 
-  # in your code:
+If you want to run the longer test suite, do this instead:
+  MCRYPT_TEST_BRUTE=1 gem install kingpong-ruby-mcrypt --source http://gems.github.com --test
+
+Put this in your code:
   require 'rubygems'
   require 'mcrypt'
 
-  # or in Rails' environment.rb:
+Or in Rails' environment.rb:
   gem "kingpong-ruby-mcrypt", :lib => "mcrypt"
 
 == Usage

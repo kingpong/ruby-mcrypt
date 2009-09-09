@@ -5,7 +5,6 @@ ext/extconf.rb
 ext/mcrypt_wrapper.c
 lib/mcrypt.rb
 mcrypt.gemspec
-setup.rb
 test/generate/Makefile
 test/generate/generate_testcases.c
 test/helper.rb
