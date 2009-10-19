@@ -25,6 +25,12 @@ You can also specify the include and library directories separately:
       -- --with-mcrypt-include=/path/to/mcrypt/include \\
          --with-mcrypt-lib=/path/to/mcrypt/lib
 
+Specifically, if you're using MacPorts, this should work for you:
+
+  sudo port install libmcrypt +universal
+  sudo gem install kingpong-ruby-mcrypt --source=http://gems.github.com \\
+      -- --with-mcrypt-dir=/opt/local
+
 ########################################################################
 
   EOF
