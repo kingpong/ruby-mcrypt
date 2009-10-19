@@ -16,12 +16,12 @@ If your libmcrypt is in a nonstandard location and has header files in
 PREFIX/include and libraries in PREFIX/lib, try installing the gem like
 this (note the extra "--"):
 
-  gem install ruby-mcrypt --source=http://gems.github.com \\
+  gem install kingpong-ruby-mcrypt --source=http://gems.github.com \\
       -- --with-mcrypt-dir=/path/to/mcrypt/prefix
 
 You can also specify the include and library directories separately:
 
-  gem install ruby-mcrypt --source=http://gems.github.com \\
+  gem install kingpong-ruby-mcrypt --source=http://gems.github.com \\
       -- --with-mcrypt-include=/path/to/mcrypt/include \\
          --with-mcrypt-lib=/path/to/mcrypt/lib
 
