@@ -27,7 +27,16 @@
 #include <string.h>
 #include <mcrypt.h>
 
-#define RSTR_N(V)       (NIL_P(V) ? NULL : RSTRING(V)->ptr)
+#ifdef RUBY_18
+# ifndef RSTRING_PTR
+#  define RSTRING_PTR(x) (RSTRING(x)->ptr)
+# endif
+# ifndef RSTRING_LEN
+#  define RSTRING_LEN(x) (RSTRING(x)->len)
+# endif
+#endif
+
+#define RSTR_N(V)       (NIL_P(V) ? NULL : RSTRING_PTR(V))
 #define TO_RB_BOOL(V)   ((V) ? Qtrue : Qfalse)
 
 /* utilities */
@@ -78,7 +87,6 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
     VALUE algo, mode, key, iv, padding;
     char *s_algo, *s_mode;
     MCRYPT *box;
-    int rv;
 
     rb_scan_args(argc, argv, "23", &algo, &mode, &key, &iv, &padding);
 
@@ -109,7 +117,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
                  s_algo, s_mode);
         free(s_algo);
         free(s_mode);
-        rb_raise(cInvalidAlgorithmOrModeError, message);
+        rb_raise(cInvalidAlgorithmOrModeError, message, NULL);
     }
     free(s_algo);
     free(s_mode);
@@ -136,8 +144,8 @@ static VALUE mc_generic_init(VALUE self)
     iv  = rb_iv_get(self, "@iv");
 
     rv = mcrypt_generic_init(*box,
-                             (void *)RSTRING(key)->ptr,
-                             RSTRING(key)->len,
+                             (void *)RSTRING_PTR(key),
+                             RSTRING_LEN(key),
                              RSTR_N(iv));
     if (rv < 0) {
         const char *err = mcrypt_strerror(rv);
@@ -167,9 +175,9 @@ static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext)
     Data_Get_Struct(self, MCRYPT, box);
 
     /* rb_str_dup doesn't actually copy the buffer, hence rb_str_new */
-    ciphertext = rb_str_new(RSTRING(plaintext)->ptr, RSTRING(plaintext)->len);
+    ciphertext = rb_str_new(RSTRING_PTR(plaintext), RSTRING_LEN(plaintext));
 
-    rv = mcrypt_generic(*box, (void *)RSTRING(ciphertext)->ptr, RSTRING(ciphertext)->len);
+    rv = mcrypt_generic(*box, (void *)RSTRING_PTR(ciphertext), RSTRING_LEN(ciphertext));
     if (rv != 0)
         rb_raise(cMcryptRuntimeError, "internal error: mcrypt_generic returned %d", rv);
     return ciphertext;
@@ -186,9 +194,9 @@ static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext)
     Data_Get_Struct(self, MCRYPT, box);
 
     /* rb_str_dup doesn't actually copy the buffer, hence rb_str_new */
-    plaintext = rb_str_new(RSTRING(ciphertext)->ptr, RSTRING(ciphertext)->len);
+    plaintext = rb_str_new(RSTRING_PTR(ciphertext), RSTRING_LEN(ciphertext));
 
-    rv = mdecrypt_generic(*box, (void *)RSTRING(plaintext)->ptr, RSTRING(plaintext)->len);
+    rv = mdecrypt_generic(*box, (void *)RSTRING_PTR(plaintext), RSTRING_LEN(plaintext));
     if (rv != 0)
         rb_raise(cMcryptRuntimeError, "internal error: mdecrypt_generic returned %d", rv);
     return plaintext;
@@ -298,7 +306,6 @@ static VALUE mc_mode_has_iv(VALUE self)
  */
 static VALUE mc_key_sizes(VALUE self)
 {
-    VALUE rv;
     MCRYPT *box;
     int *sizes, num_of_sizes;
     Data_Get_Struct(self, MCRYPT, box);
@@ -317,7 +324,7 @@ static VALUE mc_algorithm_version(VALUE self)
 {
     int version;
     VALUE algo = rb_iv_get(self,"@algorithm");
-    version = mcrypt_module_algorithm_version(RSTRING(algo)->ptr, NULL);
+    version = mcrypt_module_algorithm_version(RSTRING_PTR(algo), NULL);
     return INT2FIX(version);
 }
 
@@ -331,7 +338,7 @@ static VALUE mc_mode_version(VALUE self)
 {
     int version;
     VALUE mode = rb_iv_get(self,"@mode");
-    version = mcrypt_module_mode_version(RSTRING(mode)->ptr, NULL);
+    version = mcrypt_module_mode_version(RSTRING_PTR(mode), NULL);
     return INT2FIX(version);
 }
 
@@ -388,7 +395,7 @@ static VALUE mck_modes(VALUE self)
 static VALUE mck_is_block_algorithm(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
-    return TO_RB_BOOL(mcrypt_module_is_block_algorithm(RSTRING(algo)->ptr,NULL));
+    return TO_RB_BOOL(mcrypt_module_is_block_algorithm(RSTRING_PTR(algo),NULL));
 }
 
 /*
@@ -400,7 +407,7 @@ static VALUE mck_is_block_algorithm(VALUE self, VALUE algo)
 static VALUE mck_key_size(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
-    return INT2FIX(mcrypt_module_get_algo_key_size(RSTRING(algo)->ptr,NULL));
+    return INT2FIX(mcrypt_module_get_algo_key_size(RSTRING_PTR(algo),NULL));
 }
 
 /*
@@ -412,7 +419,7 @@ static VALUE mck_key_size(VALUE self, VALUE algo)
 static VALUE mck_block_size(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
-    return INT2FIX(mcrypt_module_get_algo_block_size(RSTRING(algo)->ptr,NULL));
+    return INT2FIX(mcrypt_module_get_algo_block_size(RSTRING_PTR(algo),NULL));
 }
 
 /*
@@ -425,8 +432,8 @@ static VALUE mck_key_sizes(VALUE self, VALUE algo)
 {
     int *sizes, num_of_sizes, max;
     algo = canonicalize_algorithm(algo);
-    max = mcrypt_module_get_algo_key_size(RSTRING(algo)->ptr, NULL);
-    sizes = mcrypt_module_get_algo_supported_key_sizes(RSTRING(algo)->ptr, NULL, &num_of_sizes);
+    max = mcrypt_module_get_algo_key_size(RSTRING_PTR(algo), NULL);
+    sizes = mcrypt_module_get_algo_supported_key_sizes(RSTRING_PTR(algo), NULL, &num_of_sizes);
     return enumerate_key_sizes(sizes, num_of_sizes, max);
 }
 
@@ -439,7 +446,7 @@ static VALUE mck_key_sizes(VALUE self, VALUE algo)
 static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode)
 {
     mode = to_s(mode);
-    return TO_RB_BOOL(mcrypt_module_is_block_algorithm_mode(RSTRING(mode)->ptr,NULL));
+    return TO_RB_BOOL(mcrypt_module_is_block_algorithm_mode(RSTRING_PTR(mode),NULL));
 }
 
 /*
@@ -451,7 +458,7 @@ static VALUE mck_is_block_algorithm_mode(VALUE self, VALUE mode)
 static VALUE mck_is_block_mode(VALUE self, VALUE mode)
 {
     mode = to_s(mode);
-    return TO_RB_BOOL(mcrypt_module_is_block_mode(RSTRING(mode)->ptr,NULL));
+    return TO_RB_BOOL(mcrypt_module_is_block_mode(RSTRING_PTR(mode),NULL));
 }
 
 /*
@@ -463,7 +470,7 @@ static VALUE mck_is_block_mode(VALUE self, VALUE mode)
 static VALUE mck_algorithm_version(VALUE self, VALUE algo)
 {
     algo = canonicalize_algorithm(algo);
-    return INT2FIX(mcrypt_module_algorithm_version(RSTRING(algo)->ptr, NULL));
+    return INT2FIX(mcrypt_module_algorithm_version(RSTRING_PTR(algo), NULL));
 }
 
 /*
@@ -475,7 +482,7 @@ static VALUE mck_algorithm_version(VALUE self, VALUE algo)
 static VALUE mck_mode_version(VALUE self, VALUE mode)
 {
     mode = to_s(mode);
-    return INT2FIX(mcrypt_module_mode_version(RSTRING(mode)->ptr, NULL));
+    return INT2FIX(mcrypt_module_mode_version(RSTRING_PTR(mode), NULL));
 }
 
 void Init_mcrypt()
@@ -548,10 +555,10 @@ static char *dup_rbstring(VALUE o, int include_null)
 {
     char *rv;
     VALUE str = to_s(o);
-    rv = malloc(RSTRING(str)->len + (include_null ? 1 : 0));
-    memcpy(rv, RSTRING(str)->ptr, RSTRING(str)->len);
+    rv = malloc(RSTRING_LEN(str) + (include_null ? 1 : 0));
+    memcpy(rv, RSTRING_PTR(str), RSTRING_LEN(str));
     if (include_null)
-        rv[RSTRING(str)->len] = '\0';
+        rv[RSTRING_LEN(str)] = '\0';
     return rv;
 }
 
