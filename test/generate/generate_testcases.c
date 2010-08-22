@@ -246,7 +246,7 @@ void dump_testcase_block(MCRYPT td, unsigned char *key, int key_size,
     mc_ret = mcrypt_generic_deinit(td);
     if (mc_ret < 0) {
         fprintf(stderr, "Error %d during deinit of %s in %s mode"
-                " (%d-byte key)\n", testing_algo, testing_mode, key_size);
+                " (%d-byte key)\n", mc_ret, testing_algo, testing_mode, key_size);
         return;
     }
 }
