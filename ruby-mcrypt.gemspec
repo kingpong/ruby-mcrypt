@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ruby-mcrypt}
-  s.version = "0.1.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Philip Garrett"]
@@ -18,26 +18,25 @@ supports lots of different ciphers and encryption modes.
 
 == You will need
 
-* A working Ruby installation
+* A working Ruby installation (>= 1.8.6 or 1.9)
 * A working libmcrypt installation (2.5.x or 2.6.x, tested with 2.5.8)
 * A sane build environment
 
 == Installation
 
 Install the gem:
-  gem install kingpong-ruby-mcrypt --source http://gems.github.com --test \
-      -- --with-mcrypt-dir=/path/to/mcrypt/prefix
+  gem install ruby-mcrypt --test -- --with-mcrypt-dir=/path/to/mcrypt/prefix
 
 If you want to run the longer test suite, do this instead:
-  MCRYPT_TEST_BRUTE=1 gem install kingpong-ruby-mcrypt --source http://gems.github.com --test \
-      -- --with-mcrypt-dir=/path/to/mcrypt/prefix
+  MCRYPT_TEST_BRUTE=1 \
+  gem install ruby-mcrypt --test -- --with-mcrypt-dir=/path/to/mcrypt/prefix
 
 Put this in your code:
   require 'rubygems'
   require 'mcrypt'
 
 Or in Rails' environment.rb:
-  gem "kingpong-ruby-mcrypt", :lib => "mcrypt"
+  gem "ruby-mcrypt", :lib => "mcrypt"
 
 == Usage
 
@@ -71,11 +70,11 @@ If you find any bugs, please let the author know.
 
 == Author
 
-* Philip Garrett <philip at pastemagazine.com>
+* Philip Garrett <philgarr at gmail.com>
 
 == Copyright and License
 
-Copyright (c) 2009 Philip Garrett.
+Copyright (c) 2009-2010 Philip Garrett.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
