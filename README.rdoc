@@ -15,6 +15,10 @@ supports lots of different ciphers and encryption modes.
 Install the gem:
   gem install ruby-mcrypt --test -- --with-mcrypt-dir=/path/to/mcrypt/prefix
 
+If you're installing on Ubuntu: 
+  sudo apt-get install mcrypt libmcrypt-dev
+  gem install ruby-mcrypt
+
 If you want to run the longer test suite, do this instead:
   MCRYPT_TEST_BRUTE=1 \
   gem install ruby-mcrypt --test -- --with-mcrypt-dir=/path/to/mcrypt/prefix
