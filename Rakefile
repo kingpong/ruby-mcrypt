@@ -4,7 +4,7 @@ require 'rake'
 require 'rake/testtask'
 
 # http://stackoverflow.com/questions/213368/how-can-i-reliably-discover-the-full-path-of-the-ruby-executable
-RUBY = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
+RUBY = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
 
 task :default => :test
 
@@ -25,7 +25,7 @@ rescue LoadError
   puts "Jeweler not available. Install it with: gem install jeweler"
 end
 
-EXTENSION = "ext/mcrypt.#{Config::CONFIG["DLEXT"]}"
+EXTENSION = "ext/mcrypt.#{RbConfig::CONFIG["DLEXT"]}"
 
 desc "Compile extension"
 task :compile => EXTENSION
