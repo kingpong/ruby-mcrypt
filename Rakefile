@@ -6,6 +6,8 @@ require 'rake/testtask'
 # http://stackoverflow.com/questions/213368/how-can-i-reliably-discover-the-full-path-of-the-ruby-executable
 RUBY = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
 
+ENV["MAINTAINER_MODE"] = "1" if File.exists?(File.dirname(__FILE__) + "/MAINTAINER")
+
 task :default => :test
 
 begin
@@ -31,7 +33,8 @@ desc "Compile extension"
 task :compile => EXTENSION
 file EXTENSION => FileList["ext/Makefile","ext/*.c"] do
   Dir.chdir("ext") do
-    system("make") || raise("could not build ruby-mcrypt")
+    opts = ENV["MAINTAINER_MODE"] ? ["V=1"] : []
+    system("make", *opts) || raise("could not build ruby-mcrypt")
   end
 end
 

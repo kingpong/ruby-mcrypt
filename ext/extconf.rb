@@ -43,4 +43,9 @@ Specifically, if you're using MacPorts, this should work for you:
   EOF
   exit 1
 end
+
+if ENV["MAINTAINER_MODE"]
+  $CFLAGS += " -Werror"
+end
+
 create_makefile(extension_name)
