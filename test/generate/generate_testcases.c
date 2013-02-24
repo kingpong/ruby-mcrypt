@@ -4,7 +4,7 @@
  * Generates a list of known-good inputs/outputs to be compared against the
  * output of ruby-mcrypt.
  *
- * Copyright (c) 2009 Philip Garrett.
+ * Copyright (c) 2009-2013 Philip Garrett.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
