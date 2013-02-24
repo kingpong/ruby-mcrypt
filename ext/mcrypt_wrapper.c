@@ -24,6 +24,7 @@
  */
 
 #include "ruby.h"
+#include <limits.h>
 #include <string.h>
 #include <mcrypt.h>
 
@@ -49,6 +50,8 @@ static VALUE canonicalize_algorithm(VALUE o);
 static char *dup_rbstring(VALUE o, int include_null);
 
 static VALUE enumerate_key_sizes(int *sizes, int num_of_sizes, int max_size);
+
+static int safe_len(long orig);
 
 /* globals */
 static VALUE cMcrypt;
@@ -145,7 +148,7 @@ static VALUE mc_generic_init(VALUE self)
 
     rv = mcrypt_generic_init(*box,
                              (void *)RSTRING_PTR(key),
-                             RSTRING_LEN(key),
+                             safe_len(RSTRING_LEN(key)),
                              RSTR_N(iv));
     if (rv < 0) {
         const char *err = mcrypt_strerror(rv);
@@ -177,7 +180,8 @@ static VALUE mc_encrypt_generic(VALUE self, VALUE plaintext)
     /* rb_str_dup doesn't actually copy the buffer, hence rb_str_new */
     ciphertext = rb_str_new(RSTRING_PTR(plaintext), RSTRING_LEN(plaintext));
 
-    rv = mcrypt_generic(*box, (void *)RSTRING_PTR(ciphertext), RSTRING_LEN(ciphertext));
+    rv = mcrypt_generic(*box, (void *)RSTRING_PTR(ciphertext),
+                        safe_len(RSTRING_LEN(ciphertext)));
     if (rv != 0)
         rb_raise(cMcryptRuntimeError, "internal error: mcrypt_generic returned %d", rv);
     return ciphertext;
@@ -196,7 +200,8 @@ static VALUE mc_decrypt_generic(VALUE self, VALUE ciphertext)
     /* rb_str_dup doesn't actually copy the buffer, hence rb_str_new */
     plaintext = rb_str_new(RSTRING_PTR(ciphertext), RSTRING_LEN(ciphertext));
 
-    rv = mdecrypt_generic(*box, (void *)RSTRING_PTR(plaintext), RSTRING_LEN(plaintext));
+    rv = mdecrypt_generic(*box, (void *)RSTRING_PTR(plaintext),
+                          safe_len(RSTRING_LEN(plaintext)));
     if (rv != 0)
         rb_raise(cMcryptRuntimeError, "internal error: mdecrypt_generic returned %d", rv);
     return plaintext;
@@ -585,4 +590,15 @@ static VALUE enumerate_key_sizes(int *sizes, int num_of_sizes, int max_size)
         rb_raise(rb_eFatal, "mcrypt_enc_get_supported_key_sizes returned invalid result.");
         return Qnil;    /* quell warning */
     }
+}
+
+static int safe_len(long orig)
+{
+    int result = (int)orig;
+    if (result != orig) {
+        rb_raise(cMcryptRuntimeError, "The string is too large. "
+                 "This version of mcrypt can only handle %d bytes (32-bit signed int)",
+                 INT_MAX);
+    }
+    return result;
 }
