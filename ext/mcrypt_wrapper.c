@@ -106,11 +106,11 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
 
     *box = mcrypt_module_open(s_algo, NULL, s_mode, NULL);
     if (*box == MCRYPT_FAILED) {
+        char message[256];
         /* MCRYPT_FAILED is currently 0, but we should explicitly set
            to zero in case they change that. We don't want to attempt to
            free it later. */
         *box = 0;
-        char message[256];
         snprintf(message, sizeof(message),
                  "Could not initialize using algorithm '%s' with mode "
                  "'%s'.  Check mcrypt(3) for supported combinations.",
