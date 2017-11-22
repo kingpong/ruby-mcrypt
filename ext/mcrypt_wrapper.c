@@ -127,6 +127,7 @@ static VALUE mc_initialize(int argc, VALUE *argv, VALUE self)
 
     rb_iv_set(self, "@algorithm", algo);
     rb_iv_set(self, "@mode", mode);
+    rb_iv_set(self, "@opened", TO_RB_BOOL(0));
 
     /* post-initialization stuff that's easier done in ruby */
     rb_funcall(self, rb_intern("after_init"), 3, key, iv, padding);
